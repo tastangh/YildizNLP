@@ -1,0 +1,19 @@
+import os
+import pandas as pd
+from datasets import load_dataset
+
+# Kayıt dosyası konumunu belirle
+file_path = "firsthomework/data/turkish_instructions.csv"
+
+# Aynı isimde dosya varsa sil
+if os.path.exists(file_path):
+    os.remove(file_path)
+
+# Veriyi indir
+dataset = load_dataset("merve/turkish_instructions")
+
+# Pandas DataFrame'e dönüştür
+df = pd.DataFrame(dataset["train"])
+
+# Veriyi UTF-8-SIG encoding ile ve sütun başlıkları ile kaydet
+df.to_csv(file_path, index=False, encoding="utf-8-sig", sep=';')
