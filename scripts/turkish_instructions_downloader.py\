@@ -3,7 +3,7 @@ import pandas as pd
 from datasets import load_dataset
 
 # Kayıt dosyası konumunu belirle
-file_path = "firsthomework/data/turkish_instructions.csv"
+file_path = "data/turkish_instructions.csv"
 
 # Aynı isimde dosya varsa sil
 if os.path.exists(file_path):
