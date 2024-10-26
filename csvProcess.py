@@ -11,9 +11,11 @@ df = pd.DataFrame(dataset['train'])
 # Boş değerleri doldurmak için fillna kullanarak birleştir
 df['question'] = df['talimat'].fillna('') + ' ' + df[' giriş'].fillna('')
 df['answer'] = df[' çıktı']
+df['index'] = df['Unnamed: 0']
+
 
 # 'soru' ve 'çıktı' sütunlarını içeren yeni bir DataFrame oluşturma
-new_df = df[['question', 'answer']]
+new_df = df[['index','question', 'answer']]
 
 # CSV olarak kaydetme (utf-8-sig ile)
 new_df.to_csv("question_answer.csv", index=False, encoding='utf-8-sig', sep=';')
