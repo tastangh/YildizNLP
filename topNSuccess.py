@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm  # Import tqdm for progress bars
 
 # Load the CSV file
-df = pd.read_csv("questions_answer.csv", encoding='utf-8-sig')
+df = pd.read_csv("/home/dev/workspace/YildizNLP/question_answer.csv", encoding='utf-8-sig', sep=';')
 
 # Data preprocessing
 df['question'] = df['question'].str.lower().str.strip()
@@ -21,7 +21,7 @@ model.eval()  # Set the model to evaluation mode
 def encode_texts_in_batches(texts, batch_size=32):
     """Vectorize texts in batches using BERT."""
     embeddings = []
-    for i in range(0, len(texts), batch_size):
+    for i in tqdm(range(0, len(texts), batch_size), desc="Encoding texts in batches"):
         batch = texts[i:i + batch_size]
         inputs = tokenizer(batch.tolist(), padding=True, truncation=True, return_tensors="pt")
         with torch.no_grad():
@@ -30,7 +30,7 @@ def encode_texts_in_batches(texts, batch_size=32):
         embeddings.append(outputs.last_hidden_state.mean(dim=1).numpy())
     return np.vstack(embeddings)
 
-# Vectorize questions and answers using BERT
+# Vectorize questions and answers using BERT in batches
 X_question = encode_texts_in_batches(df['question'])
 X_answer = encode_texts_in_batches(df['answer'])
 
