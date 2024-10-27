@@ -33,12 +33,6 @@ logging.info("CSV dosyası başarıyla okundu.")
 answers = answers_df['answer'].tolist()
 questions = answers_df['question'].tolist()  # Sorular cevaplardan alınıyor
 
-# Rastgele 1000 cevap ve soruyu seç
-np.random.seed(42)  # Tekrar üretilebilirlik için sabit rastgelelik
-random_indices = np.random.choice(len(answers), size=1000, replace=False)
-selected_answers = [answers[i] for i in random_indices]
-selected_questions = [questions[i] for i in random_indices]
-
 # Modelleri ve tokenları yükle
 models = {}
 tokenizers = {}
@@ -70,12 +64,12 @@ def get_embeddings(texts, model_name):
 # Cevapların temsillerini al
 answer_embeddings = {}
 for model_name in model_names:
-    answer_embeddings[model_name] = get_embeddings(selected_answers, model_name)
+    answer_embeddings[model_name] = get_embeddings(answers, model_name)
 
 # Soruların temsillerini al
 question_embeddings = {}
 for model_name in model_names:
-    question_embeddings[model_name] = get_embeddings(selected_questions, model_name)
+    question_embeddings[model_name] = get_embeddings(questions, model_name)
 
 # Benzerlik hesaplama ve en benzer 5 soruyu bulma
 top_1_results = {}
@@ -95,7 +89,7 @@ for model_name in model_names:
     top_1_results[model_name] = top_1_indices
 
 # Gerçek soruların indeksini belirle
-true_questions = selected_questions  # Gerçek sorular doğrudan cevaplardan alınır
+true_questions = questions  
 
 top_1_accuracy = {}
 top_5_accuracy = {}
@@ -106,8 +100,8 @@ for model_name in model_names:
     top_1_correct = np.sum(np.array(true_questions)[top_1_results[model_name]] == true_questions)
     top_5_correct = np.sum([1 if true_questions[i] in np.array(true_questions)[top_5_results[model_name][i]] else 0 for i in tqdm(range(len(top_5_results[model_name])), desc=f"{model_name} için Top 5 doğru sayımı", leave=False)])
     
-    top_1_accuracy[model_name] = top_1_correct / len(selected_questions) * 100  # Yüzde olarak başarı
-    top_5_accuracy[model_name] = top_5_correct / len(selected_questions) * 100  # Yüzde olarak başarı
+    top_1_accuracy[model_name] = top_1_correct / len(answers_df) * 100  # Yüzde olarak başarı
+    top_5_accuracy[model_name] = top_5_correct / len(answers_df) * 100  # Yüzde olarak başarı
 
 # Başarı oranlarını yazdır
 for model_name in model_names:
@@ -124,8 +118,8 @@ for model_name in model_names:
 
     # Görselleştirme
     plt.figure(figsize=(10, 8))
-    plt.scatter(tsne_results[:len(selected_questions), 0], tsne_results[:len(selected_questions), 1], label='Questions', color='blue', alpha=0.5)
-    plt.scatter(tsne_results[len(selected_questions):, 0], tsne_results[len(selected_questions):, 1], label='Answers', color='red', alpha=0.5)
+    plt.scatter(tsne_results[:len(answers_df), 0], tsne_results[:len(answers_df), 1], label='Questions', color='blue', alpha=0.5)
+    plt.scatter(tsne_results[len(answers_df):, 0], tsne_results[len(answers_df):, 1], label='Answers', color='red', alpha=0.5)
     plt.title(f'TSNE Visualization for {model_name}')
     plt.xlabel('TSNE Component 1')
     plt.ylabel('TSNE Component 2')
