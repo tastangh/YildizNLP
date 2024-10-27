@@ -1,5 +1,6 @@
-from datasets import load_dataset
 import pandas as pd
+from datasets import load_dataset
+import os
 
 # Hugging Face'deki veri setini yükle
 dataset = load_dataset("merve/turkish_instructions")
@@ -13,12 +14,16 @@ df['question'] = df['talimat'].fillna('') + ' ' + df[' giriş'].fillna('')
 df['answer'] = df[' çıktı']
 df['index'] = df['Unnamed: 0']
 
-
 # 'soru' ve 'çıktı' sütunlarını içeren yeni bir DataFrame oluşturma
-new_df = df[['index','question', 'answer']]
+new_df = df[['index', 'question', 'answer']]
 
-# CSV olarak kaydetme (utf-8-sig ile)
-new_df.to_csv("question_answer.csv", index=False, encoding='utf-8-sig', sep=';')
+# Çıktı dosyasının kaydedileceği yol
+output_dir = 'data/processed/'
+os.makedirs(output_dir, exist_ok=True)  # Klasörü oluştur
+output_file_path = os.path.join(output_dir, "processed_questions_answers.csv")
+
+# Yeni DataFrame'i CSV dosyasına kaydetme
+new_df.to_csv(output_file_path, index=False, encoding='utf-8-sig', sep=';')
 
 # İlk birkaç satırı görüntüleme (isteğe bağlı)
 print(new_df.head())
