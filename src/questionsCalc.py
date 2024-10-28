@@ -6,10 +6,27 @@ import torch
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from tqdm import tqdm
+import os
+import datetime
 import logging
 
 # Günlükleme ayarları
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+log_dir = 'results/log'
+os.makedirs(log_dir, exist_ok=True)  # Klasörü oluştur
+
+# Benzersiz dosya adı oluştur
+timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+log_file_path = os.path.join(log_dir, f'outputQToA_{timestamp}.log')
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file_path),  # Dosyaya yaz
+        logging.StreamHandler()  # Konsola yaz
+    ]
+)
+
 
 # Kullanılacak modeller
 model_names = [
