@@ -13,11 +13,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Kullanılacak modeller
 model_names = [
+    "sentence-transformers/all-MiniLM-L12-v2",
+    "jinaai/jina-embeddings-v3",
     "intfloat/multilingual-e5-large-instruct",
-    "HIT-TMG/KaLM-embedding-multilingual-mini-v1",
-    "Alibaba-NLP/gte-multilingual-base",
-    "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
-    "sentence-transformers/distiluse-base-multilingual-cased-v2",
+    "BAAI/bge-m3",
+    "thenlper/gte-large",
+    "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
 
