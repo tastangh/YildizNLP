@@ -1,7 +1,4 @@
-requiered pip install einops for jina emmbedding and nomic text
 # NLP Project
-
-This project is designed to perform natural language processing (NLP) tasks using various models. The goal is to generate embeddings from text data and calculate the similarities between these embeddings.
 
 ## Models Used
 
