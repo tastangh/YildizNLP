@@ -24,16 +24,16 @@ model_names = [
 ]
 
 # CSV dosyası
-answer_question_path = 'data/results/sampled_question_answer_for_answer.csv'
+question_answer_path = 'data/results/sampled_question_answer_for_question.csv'
 
 # CSV dosyasını oku
 logging.info("CSV dosyası okunuyor...")
-questions_df = pd.read_csv(answer_question_path, sep=';')
+questions_df = pd.read_csv(question_answer_path, sep=';')
 logging.info("CSV dosyası başarıyla okundu.")
 
 # Soruları ve cevapları ayırma
-answers = questions_df['answer'].tolist()
 questions = questions_df['question'].tolist()
+answers = questions_df['answer'].tolist()
 
 # Modelleri ve tokenları yükle
 models, tokenizers = {}, {}
@@ -74,8 +74,8 @@ def get_embeddings(texts, model_name):
     return embeddings_tensor
 
 # Soruların ve cevapların temsillerini al
-answer_embeddings = {model_name: get_embeddings(answers, model_name) for model_name in model_names}
 question_embeddings = {model_name: get_embeddings(questions, model_name) for model_name in model_names}
+answer_embeddings = {model_name: get_embeddings(answers, model_name) for model_name in model_names}
 
 # Açı benzerliği hesaplama fonksiyonu
 def calculate_angle_similarity(embeddings_1, embeddings_2):
@@ -100,13 +100,13 @@ def calculate_top_accuracy_with_angle(embeddings_1, embeddings_2, true_labels, d
 # Başarıları hesaplama
 top_1_accuracy, top_5_accuracy = {}, {}
 for model_name in model_names:
-    # Cevaplardan sorulara benzerlik hesaplama
-    top_1_acc_a2q, top_5_acc_a2q = calculate_top_accuracy_with_angle(
-        answer_embeddings[model_name], question_embeddings[model_name], questions, len(questions_df)
+    # Sorulardan cevaplara benzerlik hesaplama
+    top_1_acc_q2a, top_5_acc_q2a = calculate_top_accuracy_with_angle(
+        question_embeddings[model_name], answer_embeddings[model_name], answers, len(questions_df)
     )
     
-    top_1_accuracy[model_name] = top_1_acc_a2q
-    top_5_accuracy[model_name] = top_5_acc_a2q
+    top_1_accuracy[model_name] = top_1_acc_q2a
+    top_5_accuracy[model_name] = top_5_acc_q2a
     logging.info(f"{model_name} - Top 1 Başarı: {top_1_accuracy[model_name]:.2f}%, Top 5 Başarı: {top_5_accuracy[model_name]:.2f}%")
 
 # Görselleştirme
@@ -114,14 +114,14 @@ for model_name in model_names:
     # TSNE uygulama
     logging.info(f"{model_name} için TSNE uygulanıyor...")
     tsne = TSNE(n_components=2, random_state=42)
-    all_embeddings = torch.cat((answer_embeddings[model_name], question_embeddings[model_name]), dim=0)
+    all_embeddings = torch.cat((question_embeddings[model_name], answer_embeddings[model_name]), dim=0)
     tsne_results = tsne.fit_transform(all_embeddings)
 
     # Görselleştirme
     plt.figure(figsize=(10, 8))
-    plt.scatter(tsne_results[:len(questions_df), 0], tsne_results[:len(questions_df), 1], label='Answers', color='red', alpha=0.5)
-    plt.scatter(tsne_results[len(questions_df):, 0], tsne_results[len(questions_df):, 1], label='Questions', color='blue', alpha=0.5)
-    plt.title(f'TSNE Visualization for {model_name} (Answers to Questions)')
+    plt.scatter(tsne_results[:len(questions_df), 0], tsne_results[:len(questions_df), 1], label='Questions', color='blue', alpha=0.5)
+    plt.scatter(tsne_results[len(questions_df):, 0], tsne_results[len(questions_df):, 1], label='Answers', color='red', alpha=0.5)
+    plt.title(f'TSNE Visualization for {model_name}')
     plt.xlabel('TSNE Component 1')
     plt.ylabel('TSNE Component 2')
     plt.legend()
