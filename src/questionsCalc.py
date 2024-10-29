@@ -27,14 +27,13 @@ logging.basicConfig(
     ]
 )
 
-
 # Kullanılacak modeller
 model_names = [
+    "thenlper/gte-large",
     "sentence-transformers/all-MiniLM-L12-v2",
     "jinaai/jina-embeddings-v3",
     "intfloat/multilingual-e5-large-instruct",
     "BAAI/bge-m3",
-    "thenlper/gte-large",
     "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
@@ -63,7 +62,6 @@ for model_name in model_names:
     except Exception as e:
         logging.error(f"{model_name} yüklenirken hata oluştu: {e}")
 
-# Fonksiyon: Temsilleri al
 def get_embeddings(texts, model_name):
     tokenizer = tokenizers[model_name]
     model = models[model_name]
@@ -71,7 +69,7 @@ def get_embeddings(texts, model_name):
 
     logging.info(f"{model_name} için temsilleri alınıyor...")
     for text in tqdm(texts, desc=f"{model_name} için temsilleri alınıyor...", leave=False):
-        inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt")
+        inputs = tokenizer(text, padding='max_length', truncation=True, max_length=512, return_tensors="pt")
         with torch.no_grad():
             outputs = model(**inputs)
         embeddings.append(outputs.last_hidden_state.mean(dim=1))  # Temsil olarak ortalama alınır
@@ -79,15 +77,9 @@ def get_embeddings(texts, model_name):
     logging.info(f"{model_name} için temsiller alındı.")
     return torch.vstack(embeddings)  # Tüm temsilleri birleştir
 
-# Soruların temsillerini al
-question_embeddings = {}
-for model_name in model_names:
-    question_embeddings[model_name] = get_embeddings(questions, model_name)
-
-# Cevapların temsillerini al
-answer_embeddings = {}
-for model_name in model_names:
-    answer_embeddings[model_name] = get_embeddings(answers, model_name)
+# Soruların ve cevapların temsillerini al
+question_embeddings = {model_name: get_embeddings(questions, model_name) for model_name in model_names}
+answer_embeddings = {model_name: get_embeddings(answers, model_name) for model_name in model_names}
 
 # Benzerlik hesaplama ve en benzer 5 cevabı bulma
 top_1_results = {}
@@ -95,6 +87,7 @@ top_5_results = {}
 
 # Sorulardan cevaplara
 logging.info("Benzerlik hesaplanıyor ve en benzer 5 cevap bulunuyor...")
+true_answers_array = np.array(answers)  # Cevapların diziye çevrilmiş hali
 for model_name in model_names:
     similarities = cosine_similarity(question_embeddings[model_name], answer_embeddings[model_name])
     
@@ -106,17 +99,16 @@ for model_name in model_names:
     top_1_indices = np.argmax(similarities, axis=1)
     top_1_results[model_name] = top_1_indices
 
-# Gerçek cevapların indeksini belirle
-true_answers = answers  # Gerçek cevaplar doğrudan sorulardan alınır
-
-top_1_accuracy = {}
-top_5_accuracy = {}
-
 # Başarı oranlarını hesapla
 logging.info("Başarı oranları hesaplanıyor...")
+top_1_accuracy = {}
+top_5_accuracy = {}
 for model_name in model_names:
-    top_1_correct = np.sum(np.array(true_answers)[top_1_results[model_name]] == true_answers)
-    top_5_correct = np.sum([1 if true_answers[i] in np.array(true_answers)[top_5_results[model_name][i]] else 0 for i in tqdm(range(len(top_5_results[model_name])), desc=f"{model_name} için Top 5 doğru sayımı", leave=False)])
+    top_1_correct = np.sum(true_answers_array[top_1_results[model_name]] == true_answers_array)
+    top_5_correct = np.sum([
+        1 if true_answers_array[i] in true_answers_array[top_5_results[model_name][i]]
+        else 0 for i in range(len(top_5_results[model_name]))
+    ])
     
     top_1_accuracy[model_name] = top_1_correct / len(questions_df) * 100  # Yüzde olarak başarı
     top_5_accuracy[model_name] = top_5_correct / len(questions_df) * 100  # Yüzde olarak başarı
@@ -128,7 +120,6 @@ for model_name in model_names:
 
 # Görselleştirme
 for model_name in model_names:
-    # TSNE uygulama
     logging.info(f"{model_name} için TSNE uygulanıyor...")
     tsne = TSNE(n_components=2, random_state=42)
     all_embeddings = torch.cat((question_embeddings[model_name], answer_embeddings[model_name]), dim=0)
