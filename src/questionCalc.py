@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
@@ -8,33 +7,17 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from tqdm import tqdm
 import logging
-import datetime
 
 # Günlükleme ayarları
-log_dir = 'results/log'
-os.makedirs(log_dir, exist_ok=True)  # Klasörü oluştur
-
-# Benzersiz dosya adı oluştur
-timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-log_file_path = os.path.join(log_dir, f'outputQToA_{timestamp}.log')
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file_path),  # Dosyaya yaz
-        logging.StreamHandler()  # Konsola yaz
-    ]
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Kullanılacak modeller
 model_names = [
-    "sentence-transformers/all-MiniLM-L12-v2",
-    "jinaai/jina-embeddings-v3",
     "intfloat/multilingual-e5-large-instruct",
-    "BAAI/bge-m3",
-    "thenlper/gte-large",
-    "nomic-ai/nomic-embed-text-v1",
+    "HIT-TMG/KaLM-embedding-multilingual-mini-v1",
+    "Alibaba-NLP/gte-multilingual-base",
+    "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+    "sentence-transformers/distiluse-base-multilingual-cased-v2",
     "dbmdz/bert-base-turkish-cased"
 ]
 
@@ -48,10 +31,11 @@ logging.info("CSV dosyası başarıyla okundu.")
 
 # Soruları ve cevapları ayırma
 questions = questions_df['question'].tolist()
-answers = questions_df['answer'].tolist()
+answers = questions_df['answer'].tolist()  # Cevaplar sorulardan alınıyor
 
 # Modelleri ve tokenları yükle
-models, tokenizers = {}, {}
+models = {}
+tokenizers = {}
 for model_name in model_names:
     try:
         logging.info(f"{model_name} yükleniyor...")
@@ -61,68 +45,68 @@ for model_name in model_names:
     except Exception as e:
         logging.error(f"{model_name} yüklenirken hata oluştu: {e}")
 
-# Temsilleri çıkarma ve önbellek kontrolü
+# Fonksiyon: Temsilleri al
 def get_embeddings(texts, model_name):
-    cache_file = f'embeddings_{model_name.replace("/", "_")}.pt'
-    
-    # Önbellekten yükle
-    if os.path.exists(cache_file):
-        logging.info(f"{model_name} için temsiller önbellekten yükleniyor...")
-        return torch.load(cache_file)
-    
-    tokenizer, model = tokenizers[model_name], models[model_name]
+    tokenizer = tokenizers[model_name]
+    model = models[model_name]
     embeddings = []
 
     logging.info(f"{model_name} için temsilleri alınıyor...")
     for text in tqdm(texts, desc=f"{model_name} için temsilleri alınıyor...", leave=False):
-        # max_length 512 olarak ayarla
-        inputs = tokenizer(text, padding=True, truncation=True, max_length=512, return_tensors="pt")
+        inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt")
         with torch.no_grad():
             outputs = model(**inputs)
-        embeddings.append(outputs.last_hidden_state.mean(dim=1))
+        embeddings.append(outputs.last_hidden_state.mean(dim=1))  # Temsil olarak ortalama alınır
 
-    embeddings_tensor = torch.vstack(embeddings)  # Tüm temsilleri birleştir
+    logging.info(f"{model_name} için temsiller alındı.")
+    return torch.vstack(embeddings)  # Tüm temsilleri birleştir
 
-    # Temsilleri önbelleğe kaydet
-    torch.save(embeddings_tensor, cache_file)
-    logging.info(f"{model_name} için temsiller alındı ve önbelleğe kaydedildi.")
-    return embeddings_tensor
-
-# Soruların ve cevapların temsillerini al
-question_embeddings = {model_name: get_embeddings(questions, model_name) for model_name in model_names}
-answer_embeddings = {model_name: get_embeddings(answers, model_name) for model_name in model_names}
-
-# Açı benzerliği hesaplama fonksiyonu
-def calculate_angle_similarity(embeddings_1, embeddings_2):
-    similarities = []
-    for i in range(len(embeddings_1)):
-        A = embeddings_1[i].numpy()
-        B = embeddings_2.numpy()
-        cosine_sim = cosine_similarity([A], B)
-        angle = np.arccos(np.clip(cosine_sim, -1.0, 1.0))  # Açı hesaplama
-        similarities.append(angle)
-    return np.array(similarities)
-
-# Top-1 ve Top-5 başarıları hesaplama fonksiyonu
-def calculate_top_accuracy_with_angle(embeddings_1, embeddings_2, true_labels, df_len):
-    angle_similarities = calculate_angle_similarity(embeddings_1, embeddings_2)
-    top_5_indices = np.argsort(angle_similarities, axis=1)[:, :5]  # Küçük açılar
-    top_1_indices = np.argmin(angle_similarities, axis=1)  # En küçük açı
-    top_1_correct = np.sum(np.array(true_labels)[top_1_indices] == true_labels)
-    top_5_correct = np.sum([1 if true_labels[i] in np.array(true_labels)[top_5_indices[i]] else 0 for i in range(df_len)])
-    return top_1_correct / df_len * 100, top_5_correct / df_len * 100
-
-# Başarıları hesaplama
-top_1_accuracy, top_5_accuracy = {}, {}
+# Soruların temsillerini al
+question_embeddings = {}
 for model_name in model_names:
-    # Sorulardan cevaplara benzerlik hesaplama
-    top_1_acc_q2a, top_5_acc_q2a = calculate_top_accuracy_with_angle(
-        question_embeddings[model_name], answer_embeddings[model_name], answers, len(questions_df)
-    )
+    question_embeddings[model_name] = get_embeddings(questions, model_name)
+
+# Cevapların temsillerini al
+answer_embeddings = {}
+for model_name in model_names:
+    answer_embeddings[model_name] = get_embeddings(answers, model_name)
+
+# Benzerlik hesaplama ve en benzer 5 cevabı bulma
+top_1_results = {}
+top_5_results = {}
+
+# Sorulardan cevaplara
+logging.info("Benzerlik hesaplanıyor ve en benzer 5 cevap bulunuyor...")
+for model_name in model_names:
+    similarities = cosine_similarity(question_embeddings[model_name], answer_embeddings[model_name])
     
-    top_1_accuracy[model_name] = top_1_acc_q2a
-    top_5_accuracy[model_name] = top_5_acc_q2a
-    logging.info(f"{model_name} - Top 1 Başarı: {top_1_accuracy[model_name]:.2f}%, Top 5 Başarı: {top_5_accuracy[model_name]:.2f}%")
+    # Her bir soru için en benzer 5 cevabı bul
+    top_5_indices = np.argsort(similarities, axis=1)[:, -5:]  # En yüksek 5 benzerlik indeksini al
+    top_5_results[model_name] = top_5_indices
+    
+    # Top 1 başarı
+    top_1_indices = np.argmax(similarities, axis=1)
+    top_1_results[model_name] = top_1_indices
+
+# Gerçek cevapların indeksini belirle
+true_answers = answers  # Gerçek cevaplar doğrudan sorulardan alınır
+
+top_1_accuracy = {}
+top_5_accuracy = {}
+
+# Başarı oranlarını hesapla
+logging.info("Başarı oranları hesaplanıyor...")
+for model_name in model_names:
+    top_1_correct = np.sum(np.array(true_answers)[top_1_results[model_name]] == true_answers)
+    top_5_correct = np.sum([1 if true_answers[i] in np.array(true_answers)[top_5_results[model_name][i]] else 0 for i in tqdm(range(len(top_5_results[model_name])), desc=f"{model_name} için Top 5 doğru sayımı", leave=False)])
+    
+    top_1_accuracy[model_name] = top_1_correct / len(questions_df) * 100  # Yüzde olarak başarı
+    top_5_accuracy[model_name] = top_5_correct / len(questions_df) * 100  # Yüzde olarak başarı
+
+# Başarı oranlarını yazdır
+for model_name in model_names:
+    logging.info(f"{model_name} - Top 1 Başarı: {top_1_accuracy[model_name]:.2f}%")
+    logging.info(f"{model_name} - Top 5 Başarı: {top_5_accuracy[model_name]:.2f}%")
 
 # Görselleştirme
 for model_name in model_names:

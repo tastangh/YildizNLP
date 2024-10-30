@@ -1,0 +1,38 @@
+2024-10-30 16:13:42,496 - INFO - CSV dosyası okunuyor...
+2024-10-30 16:13:42,513 - INFO - CSV dosyası başarıyla okundu.
+2024-10-30 16:13:42,515 - INFO - sentence-transformers/all-MiniLM-L12-v2 yükleniyor...
+2024-10-30 16:13:45,218 - INFO - sentence-transformers/all-MiniLM-L12-v2 yüklendi.
+2024-10-30 16:13:45,219 - INFO - jinaai/jina-embeddings-v3 yükleniyor...
+2024-10-30 16:13:47,101 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,101 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,107 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,109 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,110 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,113 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,114 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,116 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,117 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,118 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,120 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,121 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,123 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,124 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,126 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,127 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,129 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,130 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,131 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,133 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,134 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,136 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,137 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,139 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:47,140 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 16:13:49,479 - INFO - jinaai/jina-embeddings-v3 yüklendi.
+2024-10-30 16:13:49,479 - INFO - intfloat/multilingual-e5-large-instruct yükleniyor...
+2024-10-30 16:13:52,232 - INFO - intfloat/multilingual-e5-large-instruct yüklendi.
+2024-10-30 16:13:52,232 - INFO - BAAI/bge-m3 yükleniyor...
+2024-10-30 16:13:57,306 - INFO - BAAI/bge-m3 yüklendi.
+2024-10-30 16:13:57,306 - INFO - thenlper/gte-large yükleniyor...
+2024-10-30 16:13:59,302 - INFO - thenlper/gte-large yüklendi.
+2024-10-30 16:13:59,302 - INFO - nomic-ai/nomic-embed-text-v1 yükleniyor...
