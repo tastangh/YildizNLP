@@ -1,0 +1,62 @@
+2024-10-30 20:12:19,528 - INFO - Reading CSV file...
+2024-10-30 20:12:19,542 - INFO - CSV file successfully read.
+2024-10-30 20:12:19,601 - INFO - Using device: cuda
+2024-10-30 20:12:19,607 - INFO - Processing model: jinaai/jina-embeddings-v3
+2024-10-30 20:12:24,539 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,541 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,552 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,556 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,563 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,568 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,906 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,910 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,913 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,918 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,922 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,925 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,928 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,930 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,932 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,934 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,936 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,940 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,944 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,947 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,951 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,954 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,958 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,960 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:24,964 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:12:28,684 - INFO - Getting embeddings for jinaai/jina-embeddings-v3...
+2024-10-30 20:13:33,761 - INFO - Embeddings for jinaai/jina-embeddings-v3 obtained.
+2024-10-30 20:13:36,795 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,797 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,802 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,807 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,810 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,813 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,816 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,819 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,821 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,823 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,826 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,830 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,833 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,836 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,839 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,843 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,846 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,848 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,852 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,854 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,858 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,860 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,862 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,864 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:36,866 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 20:13:40,448 - INFO - Getting embeddings for jinaai/jina-embeddings-v3...
+2024-10-30 20:14:28,873 - INFO - Embeddings for jinaai/jina-embeddings-v3 obtained.
+2024-10-30 20:14:30,806 - INFO - jinaai/jina-embeddings-v3 - Top 1 Accuracy: 89.40%
+2024-10-30 20:14:30,806 - INFO - jinaai/jina-embeddings-v3 - Top 5 Accuracy: 95.60%
+2024-10-30 20:14:30,806 - INFO - Applying TSNE for jinaai/jina-embeddings-v3...
+2024-10-30 20:14:42,743 - INFO - TSNE visualization completed for jinaai/jina-embeddings-v3.
