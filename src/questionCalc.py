@@ -119,7 +119,6 @@ for model_name in model_names:
     logging.info(f"{model_name} - Top 1 Accuracy: {top_1_accuracy[model_name]:.2f}%")
     logging.info(f"{model_name} - Top 5 Accuracy: {top_5_accuracy[model_name]:.2f}%")
 
-
 # Visualization with TSNE
 for model_name in model_names:
     logging.info(f"Applying TSNE for {model_name}...")
@@ -136,4 +135,4 @@ for model_name in model_names:
     plt.ylabel('TSNE Component 2')
     plt.legend()
     plt.show()
-    logging.info(f"{model_name} için TSNE görselleştirmesi tamamlandı.")
+    logging.info(f"TSNE visualization completed for {model_name}.")
