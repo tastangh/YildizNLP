@@ -1,0 +1,45 @@
+2024-10-30 17:29:13,365 - INFO - Reading CSV file...
+2024-10-30 17:29:13,377 - INFO - CSV file successfully read.
+2024-10-30 17:29:13,378 - INFO - Loading model: sentence-transformers/all-MiniLM-L12-v2...
+2024-10-30 17:29:17,339 - INFO - sentence-transformers/all-MiniLM-L12-v2 loaded successfully.
+2024-10-30 17:29:17,339 - INFO - Loading model: jinaai/jina-embeddings-v3...
+2024-10-30 17:29:20,503 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,505 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,512 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,517 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,526 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,542 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,550 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,554 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,556 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,557 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,559 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,560 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,562 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,564 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,565 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,567 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,569 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,570 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,571 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,573 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,574 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,576 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,577 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,579 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:20,580 - WARNING - flash_attn is not installed. Using PyTorch native attention implementation.
+2024-10-30 17:29:22,453 - INFO - jinaai/jina-embeddings-v3 loaded successfully.
+2024-10-30 17:29:22,453 - INFO - Loading model: intfloat/multilingual-e5-large-instruct...
+2024-10-30 17:29:24,713 - INFO - intfloat/multilingual-e5-large-instruct loaded successfully.
+2024-10-30 17:29:24,713 - INFO - Loading model: BAAI/bge-m3...
+2024-10-30 17:29:27,349 - INFO - BAAI/bge-m3 loaded successfully.
+2024-10-30 17:29:27,349 - INFO - Loading model: thenlper/gte-large...
+2024-10-30 17:29:29,001 - INFO - thenlper/gte-large loaded successfully.
+2024-10-30 17:29:29,002 - INFO - Loading model: nomic-ai/nomic-embed-text-v1...
+2024-10-30 17:29:32,807 - WARNING - <All keys matched successfully>
+2024-10-30 17:29:32,812 - INFO - nomic-ai/nomic-embed-text-v1 loaded successfully.
+2024-10-30 17:29:32,813 - INFO - Loading model: dbmdz/bert-base-turkish-cased...
+2024-10-30 17:29:34,465 - INFO - dbmdz/bert-base-turkish-cased loaded successfully.
+2024-10-30 17:29:34,465 - INFO - Getting embeddings for sentence-transformers/all-MiniLM-L12-v2...
+2024-10-30 17:29:56,738 - INFO - Embeddings for sentence-transformers/all-MiniLM-L12-v2 obtained.
+2024-10-30 17:29:56,739 - INFO - Getting embeddings for jinaai/jina-embeddings-v3...
