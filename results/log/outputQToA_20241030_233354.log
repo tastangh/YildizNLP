@@ -1,0 +1,3 @@
+2024-10-30 23:33:54,159 - INFO - Reading CSV file...
+2024-10-30 23:33:54,170 - INFO - CSV file successfully read.
+2024-10-30 23:33:54,171 - INFO - Processing model: dbmdz/bert-base-turkish-cased

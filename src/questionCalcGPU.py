@@ -1,17 +1,15 @@
-import pandas as pd
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from transformers import AutoTokenizer, AutoModel
-import torch
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-from tqdm import tqdm
 import logging
 import os
 import datetime
-import torch.multiprocessing as mp
+import pandas as pd
+import torch
+from torch.utils.data import Dataset, DataLoader
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
+import numpy as np
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+from sklearn.metrics.pairwise import cosine_similarity  # Ensure this import is added
+from tqdm import tqdm  # Import tqdm for progress bars
 
 # Set up logging
 log_dir = 'results/log'
@@ -32,11 +30,6 @@ logging.basicConfig(
 
 # Model names
 model_names = [
-    "jinaai/jina-embeddings-v3",
-    "sentence-transformers/all-MiniLM-L12-v2",
-    "intfloat/multilingual-e5-large-instruct",
-    "BAAI/bge-m3",
-    "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
 
@@ -54,58 +47,96 @@ except Exception as e:
 questions = questions_df['question'].tolist()
 answers = questions_df['answer'].tolist()
 
-# Set device
-try:
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f"Using device: {device}")
-except Exception as e:
-    logging.error(f"Error setting device: {e}")
-    raise
+# Hyperparameters
+learning_rate = 5e-5
+batch_size = 8
+num_epochs = 3
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Function to get embeddings for a single model
+# Dataset class for DataLoader
+class QuestionAnswerDataset(Dataset):
+    def __init__(self, questions, answers):
+        self.questions = questions
+        self.answers = answers
+        self.tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased")
+
+    def __len__(self):
+        return len(self.questions)
+
+    def __getitem__(self, idx):
+        question = self.questions[idx]
+        answer = self.answers[idx]
+        encoding = self.tokenizer(
+            question,
+            answer,
+            truncation=True,
+            padding='max_length',
+            max_length=128,
+            return_tensors='pt'
+        )
+        item = {key: val.flatten() for key, val in encoding.items()}
+
+        # Dummy label - replace with actual labels if available
+        item['labels'] = torch.tensor(1)  # Ensure actual labels are provided if available
+
+        return item
+
+# Function to get embeddings
 def get_embeddings(texts, model_name):
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-        model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
-    except Exception as e:
-        logging.error(f"Error loading model or tokenizer for {model_name}: {e}")
-        raise
-    
-    embeddings = []
-    try:
-        logging.info(f"Getting embeddings for {model_name}...")
-        for text in tqdm(texts, desc=f"Processing {model_name}", leave=False):
-            inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt").to(device)
-            with torch.no_grad():
-                outputs = model(**inputs)
-            
-            # Convert to float32 if necessary
-            embedding = outputs.last_hidden_state.mean(dim=1).float()
-            
-            # Resize embeddings to a common size
-            target_dim = 512  # Or the desired fixed dimension
-            if embedding.size(1) > target_dim:
-                embedding = embedding[:, :target_dim]
-            elif embedding.size(1) < target_dim:
-                padding = torch.zeros((1, target_dim - embedding.size(1))).to(device)
-                embedding = torch.cat([embedding, padding], dim=1)
-            
-            embeddings.append(embedding)
-        
-        embeddings = torch.vstack(embeddings).cpu()  # Move to CPU for memory optimization
-        logging.info(f"Embeddings for {model_name} obtained.")
-    except Exception as e:
-        logging.error(f"Error obtaining embeddings for {model_name}: {e}")
-        raise
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
+    model.eval()
 
-    return embeddings
+    embeddings = []
+    with torch.no_grad():
+        for text in tqdm(texts, desc="Extracting embeddings", unit='text'):
+            encoding = tokenizer(text, truncation=True, padding='max_length', max_length=128, return_tensors='pt').to(device)
+            output = model(**encoding)
+            # Adjust this line to ensure output is 2D
+            embeddings.append(output.logits.cpu().numpy().squeeze())
+
+    return np.array(embeddings)
+
+# Function to train the model
+def train_model(model, train_loader, device):
+    model.train()
+    optimizer = AdamW(model.parameters(), lr=learning_rate)  # Use torch's AdamW
+    
+    for epoch in range(num_epochs):
+        total_loss = 0
+        # Wrap train_loader with tqdm for progress tracking
+        for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1}/{num_epochs}", unit='batch'):
+            optimizer.zero_grad()
+            inputs = batch['input_ids'].to(device)
+            masks = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+
+            # Forward pass
+            outputs = model(input_ids=inputs, attention_mask=masks, labels=labels)
+            loss = outputs.loss
+            total_loss += loss.item()
+            loss.backward()
+            optimizer.step()
+
+        avg_loss = total_loss / len(train_loader)
+        logging.info(f"Epoch {epoch + 1}/{num_epochs}, Loss: {avg_loss:.4f}")
 
 # Function to process a model
-def process_model(model_name):
+def process_model(model_name, questions, answers):
     try:
         logging.info(f"Processing model: {model_name}")
-        
-        # Get embeddings
+
+        # Create dataset and dataloader
+        dataset = QuestionAnswerDataset(questions, answers)
+        train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        # Load model
+        model = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
+
+        # Train the model
+        train_model(model, train_loader, device)
+
+        # Get embeddings for questions and answers
         question_embeddings = get_embeddings(questions, model_name)
         answer_embeddings = get_embeddings(answers, model_name)
 
@@ -115,19 +146,19 @@ def process_model(model_name):
 
         # Find indices of top 5 answers
         top_5_indices = np.argsort(angles, axis=1)[:, :5]
-        
-        # Top 1 accuracy (minimum angular distance)
+
+        # Top 1 accuracy
         top_1_indices = np.argmin(angles, axis=1)
 
-        # Determine true answers
-        true_answers = answers
+        # Placeholder true_answers list, replace with actual answers if available
+        true_answers = answers  # Adjust this as per your data structure
 
         # Calculate accuracy metrics
         top_1_correct = np.sum(np.array(true_answers)[top_1_indices] == true_answers)
         top_5_correct = np.sum([1 if true_answers[i] in np.array(true_answers)[top_5_indices[i]] else 0 for i in range(len(top_5_indices))])
-        
-        top_1_accuracy = (top_1_correct / len(questions_df)) * 100
-        top_5_accuracy = (top_5_correct / len(questions_df)) * 100
+
+        top_1_accuracy = (top_1_correct / len(questions)) * 100
+        top_5_accuracy = (top_5_correct / len(questions)) * 100
 
         # Log accuracy results
         logging.info(f"{model_name} - Top 1 Accuracy: {top_1_accuracy:.2f}%")
@@ -136,13 +167,13 @@ def process_model(model_name):
         # Visualization with TSNE
         logging.info(f"Applying TSNE for {model_name}...")
         tsne = TSNE(n_components=2, random_state=42)
-        all_embeddings = torch.cat((question_embeddings, answer_embeddings), dim=0)
+        all_embeddings = np.concatenate((question_embeddings, answer_embeddings), axis=0)
         tsne_results = tsne.fit_transform(all_embeddings)
 
         # Visualization
         plt.figure(figsize=(10, 8))
-        plt.scatter(tsne_results[:len(questions_df), 0], tsne_results[:len(questions_df), 1], label='Questions', color='blue', alpha=0.5)
-        plt.scatter(tsne_results[len(questions_df):, 0], tsne_results[len(questions_df):, 1], label='Answers', color='red', alpha=0.5)
+        plt.scatter(tsne_results[:len(questions), 0], tsne_results[:len(questions), 1], label='Questions', color='blue', alpha=0.5)
+        plt.scatter(tsne_results[len(questions):, 0], tsne_results[len(questions):, 1], label='Answers', color='red', alpha=0.5)
         plt.title(f'TSNE Visualization for {model_name}')
         plt.xlabel('TSNE Component 1')
         plt.ylabel('TSNE Component 2')
@@ -152,14 +183,12 @@ def process_model(model_name):
     
     except Exception as e:
         logging.error(f"Error processing model {model_name}: {e}")
-        raise
 
-# Initialize multiprocessing for parallel model processing
-if __name__ == '__main__':
-    try:
-        mp.set_start_method('spawn')  # Use 'spawn' for CUDA multiprocessing compatibility
-        with mp.Pool(processes=len(model_names)) as pool:
-            pool.map(process_model, model_names)
-    except Exception as e:
-        logging.error(f"Error in multiprocessing: {e}")
-        raise
+# Main execution
+if __name__ == "__main__":
+    # Initialize logging
+    logging.basicConfig(level=logging.INFO)
+
+    # Specify the model name
+    for model_name in model_names:
+        process_model(model_name, questions, answers)
