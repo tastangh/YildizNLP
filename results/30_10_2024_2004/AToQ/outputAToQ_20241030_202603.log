@@ -1,0 +1,26 @@
+2024-10-30 20:26:03,261 - INFO - Reading CSV file...
+2024-10-30 20:26:03,274 - INFO - CSV file successfully read.
+2024-10-30 20:26:03,351 - INFO - Using device: cuda
+2024-10-30 20:26:03,353 - INFO - Processing model: nomic-ai/nomic-embed-text-v1
+2024-10-30 20:26:03,654 - INFO - Reading CSV file...
+2024-10-30 20:26:03,677 - INFO - CSV file successfully read.
+2024-10-30 20:26:03,744 - INFO - Using device: cuda
+2024-10-30 20:26:03,747 - INFO - Processing model: dbmdz/bert-base-turkish-cased
+2024-10-30 20:26:08,289 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-10-30 20:26:13,803 - WARNING - <All keys matched successfully>
+2024-10-30 20:26:14,628 - INFO - Getting embeddings for nomic-ai/nomic-embed-text-v1...
+2024-10-30 20:26:34,569 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-10-30 20:26:37,136 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-10-30 20:26:58,562 - INFO - Embeddings for nomic-ai/nomic-embed-text-v1 obtained.
+2024-10-30 20:27:00,007 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-10-30 20:27:00,782 - INFO - dbmdz/bert-base-turkish-cased - Top 1 Accuracy: 21.90%
+2024-10-30 20:27:00,782 - INFO - dbmdz/bert-base-turkish-cased - Top 5 Accuracy: 34.40%
+2024-10-30 20:27:00,783 - INFO - Applying TSNE for dbmdz/bert-base-turkish-cased...
+2024-10-30 20:27:03,452 - WARNING - <All keys matched successfully>
+2024-10-30 20:27:03,756 - INFO - Getting embeddings for nomic-ai/nomic-embed-text-v1...
+2024-10-30 20:27:18,281 - INFO - TSNE visualization completed for dbmdz/bert-base-turkish-cased.
+2024-10-30 20:27:30,785 - INFO - Embeddings for nomic-ai/nomic-embed-text-v1 obtained.
+2024-10-30 20:27:31,604 - INFO - nomic-ai/nomic-embed-text-v1 - Top 1 Accuracy: 50.50%
+2024-10-30 20:27:31,605 - INFO - nomic-ai/nomic-embed-text-v1 - Top 5 Accuracy: 63.20%
+2024-10-30 20:27:31,606 - INFO - Applying TSNE for nomic-ai/nomic-embed-text-v1...
+2024-10-30 20:28:01,366 - INFO - TSNE visualization completed for nomic-ai/nomic-embed-text-v1.
