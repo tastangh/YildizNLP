@@ -1,0 +1,5 @@
+2024-10-30 23:28:05,110 - INFO - Reading CSV file...
+2024-10-30 23:28:05,122 - INFO - CSV file successfully read.
+2024-10-30 23:28:05,123 - INFO - Using device: cpu
+2024-10-30 23:28:05,125 - INFO - Processing model: dbmdz/bert-base-turkish-cased
+2024-10-30 23:28:07,893 - ERROR - Error processing model dbmdz/bert-base-turkish-cased: BertModel.forward() got an unexpected keyword argument 'labels'
