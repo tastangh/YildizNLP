@@ -61,7 +61,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logging.info(f"Using device: {device}")
 
 # Function to get embeddings for a single model
-def get_embeddings(texts, model_name, batch_size=32):
+def get_embeddings(texts, model_name):
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
@@ -72,13 +72,22 @@ def get_embeddings(texts, model_name, batch_size=32):
     embeddings = []
     try:
         logging.info(f"Getting embeddings for {model_name}...")
-        for i in tqdm(range(0, len(texts), batch_size), desc=f"Processing {model_name}", leave=False):
-            batch_texts = texts[i:i+batch_size]
-            inputs = tokenizer(batch_texts, padding=True, truncation=True, return_tensors="pt").to(device)
+        for text in tqdm(texts, desc=f"Processing {model_name}", leave=False):
+            inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt").to(device)
             with torch.no_grad():
                 outputs = model(**inputs)
             
+            # Convert to float32 if necessary
             embedding = outputs.last_hidden_state.mean(dim=1).float()
+            
+            # Resize embeddings to a common size
+            target_dim = 512  # Or the desired fixed dimension
+            if embedding.size(1) > target_dim:
+                embedding = embedding[:, :target_dim]
+            elif embedding.size(1) < target_dim:
+                padding = torch.zeros((1, target_dim - embedding.size(1))).to(device)
+                embedding = torch.cat([embedding, padding], dim=1)
+            
             embeddings.append(embedding)
         
         embeddings = torch.vstack(embeddings).cpu()  # Move to CPU for memory optimization
@@ -170,23 +179,22 @@ def process_model(model_name):
         plt.scatter(tsne_results[:len(train_questions), 0], tsne_results[:len(train_questions), 1], label='Train Questions', color='blue', alpha=0.5)
         plt.scatter(tsne_results[len(train_questions):len(train_questions)+len(train_answers), 0], tsne_results[len(train_questions):len(train_questions)+len(train_answers), 1], label='Train Answers', color='red', alpha=0.5)
         plt.scatter(tsne_results[len(train_questions)+len(train_answers):, 0], tsne_results[len(train_questions)+len(train_answers):, 1], label='Valid Questions', color='green', alpha=0.5)
-        plt.scatter(tsne_results[len(train_questions)+len(train_answers):, 0], tsne_results[len(train_questions)+len(train_answers):, 1], label='Valid Answers', color='yellow', alpha=0.5)
-
+        plt.scatter(tsne_results[len(train_questions)+len(train_answers):, 0], tsne_results[len(train_questions)+len(train_answers):, 1], label='Valid Answers', color='orange', alpha=0.5)
         plt.title(f'TSNE Visualization for {model_name}')
+        plt.xlabel('TSNE Component 1')
+        plt.ylabel('TSNE Component 2')
         plt.legend()
-        plt.savefig(f'results/tsne_{model_name.replace("/", "_")}.png')
-        plt.close()
-
-        logging.info(f"TSNE visualization saved for {model_name}.")
+        # plt.show()
+        logging.info(f"TSNE visualization completed for {model_name}.")
+        
     except Exception as e:
         logging.error(f"Error processing model {model_name}: {e}")
+        raise
 
-# Run processing for all models
+# Main processing function
+def main():
+    for model_name in model_names:
+        process_model(model_name)
+
 if __name__ == "__main__":
-    try:
-        logging.info("Starting model processing...")
-        for model_name in model_names:
-            process_model(model_name)
-        logging.info("All models processed successfully.")
-    except Exception as e:
-        logging.error(f"Error in main processing loop: {e}")
+    main()  
