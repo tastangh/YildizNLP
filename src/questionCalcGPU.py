@@ -7,7 +7,8 @@ import logging
 import os
 import datetime
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm  # Ekledik, işlemler sırasında ilerleme çubuğu göstermek için
+from tqdm import tqdm  # To show progress bar
+import random
 
 # Set up logging
 log_dir = 'results/log'
@@ -41,6 +42,37 @@ except Exception as e:
     logging.error(f"Error reading CSV file: {e}")
     raise
 
+# Function to clean and preprocess text
+def clean_text(text):
+    # Convert to lowercase
+    text = text.lower()
+    # Remove unnecessary characters (e.g., punctuation)
+    text = ''.join(e for e in text if e.isalnum() or e.isspace())
+    return text
+
+# Apply cleaning
+questions_df['question'] = questions_df['question'].apply(clean_text)
+questions_df['answer'] = questions_df['answer'].apply(clean_text)
+
+# Simple synonym replacement for data augmentation
+synonyms = {
+    'iyi': 'güzel',
+    'kötü': 'fena',
+    'hızlı': 'çabuk',
+    'yavaş': 'ağır',
+    'güçlü': 'kuvvetli'
+}
+
+def augment_text(text):
+    words = text.split()
+    for i, word in enumerate(words):
+        if word in synonyms:
+            words[i] = synonyms[word] if random.random() > 0.5 else word
+    return ' '.join(words)
+
+questions_df['question'] = questions_df['question'].apply(augment_text)
+questions_df['answer'] = questions_df['answer'].apply(augment_text)
+
 # Extract questions and answers
 questions = questions_df['question'].tolist()
 answers = questions_df['answer'].tolist()
@@ -56,9 +88,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logging.info(f"Using device: {device}")
 
 # Hyperparameters
-num_epochs = 20  # Set the number of epochs
+num_epochs = 3  # Set the number of epochs
 learning_rate = 1e-5  # Set the learning rate
-batch_size = 16  # Set the mini-batch size
+batch_size = 50  # Set the mini-batch size
+patience = 2  # For early stopping
 
 # Function to get embeddings for a single model
 def get_embeddings(texts, model_name): 
@@ -90,7 +123,7 @@ def get_embeddings(texts, model_name):
 
 # Function to process a model
 def process_model(model_name):
-    global train_questions, train_answers  # Değişkenleri global olarak tanımlıyoruz
+    global train_questions, train_answers
     try:
         logging.info(f"Processing model: {model_name}")
         
@@ -98,6 +131,9 @@ def process_model(model_name):
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+
+        best_val_loss = float('inf')
+        patience_counter = 0
 
         for epoch in range(num_epochs):
             logging.info(f"Starting epoch {epoch + 1}/{num_epochs} for {model_name}...")
@@ -159,37 +195,44 @@ def process_model(model_name):
                 logging.info(f"{model_name} - Epoch {epoch + 1}: Validation Top 1 Accuracy: {valid_top_1_accuracy:.2f}%")
                 logging.info(f"{model_name} - Epoch {epoch + 1}: Validation Top 5 Accuracy: {valid_top_5_accuracy:.2f}%")
 
-        # Testing after training
-        logging.info("Starting testing phase...")
-        model.eval()  # Set the model to evaluation mode
-        with torch.no_grad():
-            test_question_embeddings = get_embeddings(test_questions, model_name)
-            test_answer_embeddings = get_embeddings(test_answers, model_name)
+                # Early stopping check
+                current_val_loss = valid_angles.mean()
+                if current_val_loss < best_val_loss:
+                    best_val_loss = current_val_loss
+                    patience_counter = 0  # Reset patience counter
+                    logging.info(f"{model_name} - Epoch {epoch + 1}: Model improved, saving model...") 
+                    # Save the model if you want to implement saving functionality
+                else:
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        logging.info(f"{model_name} - Early stopping after {epoch + 1} epochs.")
+                        break
 
-            test_similarities = cosine_similarity(test_question_embeddings, test_answer_embeddings)
-            test_angles = np.arccos(np.clip(test_similarities, -1, 1))
+        # Evaluate on the test set after training
+        logging.info(f"Evaluating model on test set: {model_name}")
+        test_question_embeddings = get_embeddings(test_questions, model_name)
+        test_answer_embeddings = get_embeddings(test_answers, model_name)
 
-            test_top_1_indices = np.argmin(test_angles, axis=1)
-            test_top_1_correct = np.sum(np.array(test_answers)[test_top_1_indices] == test_answers)
+        test_similarities = cosine_similarity(test_question_embeddings, test_answer_embeddings)
+        test_angles = np.arccos(np.clip(test_similarities, -1, 1))
 
-            # Calculate Top 5 accuracy for testing
-            test_top_5_indices = np.argsort(test_angles, axis=1)[:, :5]
-            test_top_5_correct = np.sum([1 if test_answers[i] in np.array(test_answers)[test_top_5_indices[i]] else 0 for i in range(len(test_top_5_indices))])
+        test_top_1_indices = np.argmin(test_angles, axis=1)
+        test_top_1_correct = np.sum(np.array(test_answers)[test_top_1_indices] == test_answers)
 
-            test_top_1_accuracy = (test_top_1_correct / len(test_answers)) * 100
-            test_top_5_accuracy = (test_top_5_correct / len(test_answers)) * 100
-            
-            logging.info(f"{model_name}: Test Top 1 Accuracy: {test_top_1_accuracy:.2f}%")
-            logging.info(f"{model_name}: Test Top 5 Accuracy: {test_top_5_accuracy:.2f}%")
+        # Calculate Top 5 accuracy for test
+        test_top_5_indices = np.argsort(test_angles, axis=1)[:, :5]
+        test_top_5_correct = np.sum([1 if test_answers[i] in np.array(test_answers)[test_top_5_indices[i]] else 0 for i in range(len(test_top_5_indices))])
+        
+        test_top_1_accuracy = (test_top_1_correct / len(test_answers)) * 100
+        test_top_5_accuracy = (test_top_5_correct / len(test_answers)) * 100
+
+        logging.info(f"{model_name} - Test Top 1 Accuracy: {test_top_1_accuracy:.2f}%")
+        logging.info(f"{model_name} - Test Top 5 Accuracy: {test_top_5_accuracy:.2f}%")
 
     except Exception as e:
         logging.error(f"Error processing model {model_name}: {e}")
-        raise
 
-# Main processing function
-def main():
-    for model_name in model_names:
-        process_model(model_name)
+# Run all models
+for model_name in model_names:
+    process_model(model_name)
 
-if __name__ == "__main__":
-    main()
