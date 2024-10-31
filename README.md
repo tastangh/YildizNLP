@@ -33,3 +33,4 @@ To run this project, you will need to install the following Python packages. Mak
 pip install einops
 pip install pandas numpy scikit-learn transformers torch matplotlib tqdm
 pip install optuna
+pip install nltk

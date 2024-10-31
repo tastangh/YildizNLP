@@ -88,9 +88,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logging.info(f"Using device: {device}")
 
 # Hyperparameters
-num_epochs = 3  # Set the number of epochs
+num_epochs = 1 # Set the number of epochs
 learning_rate = 1e-5  # Set the learning rate
-batch_size = 50  # Set the mini-batch size
+batch_size = 150  # Set the mini-batch size
 patience = 2  # For early stopping
 
 # Function to get embeddings for a single model
