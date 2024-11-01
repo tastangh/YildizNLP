@@ -131,20 +131,28 @@ if __name__ == '__main__':
 
     print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
 
-    # t-SNE uygulama ve görselleştirme
-    for model_name in model_names:
-        model_data = load_model(model_name)
-        all_representations = np.vstack([get_representation(model_data, questions)] + 
-                                         [get_representation(model_data, [answer]) for answer in answers])
-        tsne = TSNE(n_components=2, random_state=42)
-        tsne_results = tsne.fit_transform(all_representations)
+# t-SNE uygulama ve görselleştirme
+for model_name in model_names:
+    model_data = load_model(model_name)
+    # Tüm temsil verilerini al
+    all_representations = np.vstack([get_representation(model_data, questions)] + 
+                                     [get_representation(model_data, [answer]) for answer in answers])
+    
+    # t-SNE uygulama
+    tsne = TSNE(n_components=2, random_state=42)
+    tsne_results = tsne.fit_transform(all_representations)
 
-        plt.figure(figsize=(10, 6))
-        for i, label in enumerate(["Soru"] * len(questions) + ["Cevap"] * len(answers)):
-            plt.scatter(tsne_results[i, 0], tsne_results[i, 1], label=label, alpha=0.6)
-        plt.title(f"{model_name} - t-SNE Görselleştirme")
-        plt.xlabel("t-SNE 1")
-        plt.ylabel("t-SNE 2")
-        plt.legend()
-        plt.grid()
-        plt.show()
+    plt.figure(figsize=(10, 6))
+    
+    # Soru ve cevapları tek renk ile göstermek
+    plt.scatter(tsne_results[:len(questions), 0], tsne_results[:len(questions), 1], 
+                label='Soru', color='blue', alpha=0.6)  # Soru için mavi
+    plt.scatter(tsne_results[len(questions):, 0], tsne_results[len(questions):, 1], 
+                label='Cevap', color='orange', alpha=0.6)  # Cevap için turuncu
+    
+    plt.title(f"{model_name} - t-SNE Görselleştirme")
+    plt.xlabel("t-SNE 1")
+    plt.ylabel("t-SNE 2")
+    plt.legend()
+    plt.grid()
+    plt.show()
