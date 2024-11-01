@@ -1,0 +1,12 @@
+2024-10-31 21:08:23,202 - INFO - Reading CSV file...
+2024-10-31 21:08:23,217 - INFO - CSV file successfully read.
+2024-10-31 21:08:23,294 - INFO - Using device: cuda
+2024-10-31 21:08:23,299 - INFO - Processing model: jinaai/jina-embeddings-v3
+2024-10-31 21:08:23,510 - INFO - Reading CSV file...
+2024-10-31 21:08:23,524 - INFO - CSV file successfully read.
+2024-10-31 21:08:23,591 - INFO - Using device: cuda
+2024-10-31 21:08:23,596 - INFO - Processing model: sentence-transformers/all-MiniLM-L12-v2
+2024-10-31 21:08:23,909 - INFO - Reading CSV file...
+2024-10-31 21:08:23,923 - INFO - CSV file successfully read.
+2024-10-31 21:08:23,992 - INFO - Using device: cuda
+2024-10-31 21:08:23,996 - INFO - Processing model: intfloat/multilingual-e5-large-instruct

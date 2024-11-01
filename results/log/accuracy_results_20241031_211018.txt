@@ -1,0 +1,12 @@
+sentence-transformers/all-MiniLM-L12-v2
+Validation Top 1: 41.00%
+Validation Top 5: 55.00%
+Test Top 1: 40.00%
+Test Top 5: 56.00%
+
+jinaai/jina-embeddings-v3
+Validation Top 1: 94.00%
+Validation Top 5: 98.00%
+Test Top 1: 95.00%
+Test Top 5: 99.00%
+

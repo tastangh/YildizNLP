@@ -1,4 +1,0 @@
-2024-10-30 23:28:49,628 - INFO - Reading CSV file...
-2024-10-30 23:28:49,638 - INFO - CSV file successfully read.
-2024-10-30 23:28:49,639 - INFO - Using device: cpu
-2024-10-30 23:28:57,026 - ERROR - Error in multiprocessing: Expected input batch_size (8) to match target batch_size (1024).

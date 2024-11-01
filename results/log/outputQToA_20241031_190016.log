@@ -1,4 +1,0 @@
-2024-10-31 19:00:16,492 - INFO - Reading CSV file...
-2024-10-31 19:00:16,503 - INFO - CSV file successfully read.
-2024-10-31 19:00:16,749 - INFO - Using device: cuda
-2024-10-31 19:00:58,826 - INFO - Results for model dbmdz/bert-base-turkish-cased - Train Top 1: 38.67%, Train Top 5: 55.67%, Valid Top 1: 40.00%, Valid Top 5: 54.00%, Test Top 1: 52.00%, Test Top 5: 59.00%

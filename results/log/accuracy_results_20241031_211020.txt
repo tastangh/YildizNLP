@@ -1,0 +1,12 @@
+dbmdz/bert-base-turkish-cased
+Validation Top 1: 47.00%
+Validation Top 5: 59.00%
+Test Top 1: 51.00%
+Test Top 5: 65.00%
+
+nomic-ai/nomic-embed-text-v1
+Validation Top 1: 59.00%
+Validation Top 5: 69.00%
+Test Top 1: 58.00%
+Test Top 5: 70.00%
+
