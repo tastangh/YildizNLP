@@ -1,0 +1,10 @@
+2024-11-01 20:31:57,326 - INFO - Reading CSV file...
+2024-11-01 20:31:57,338 - INFO - CSV file successfully read.
+2024-11-01 20:31:57,401 - INFO - Using device: cuda
+2024-11-01 20:31:57,404 - INFO - Processing model: dbmdz/bert-base-turkish-cased
+2024-11-01 20:32:01,581 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:32:10,277 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:32:11,769 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:32:21,489 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:32:22,628 - INFO - dbmdz/bert-base-turkish-cased - Top 1 Accuracy: 28.70%
+2024-11-01 20:32:22,628 - INFO - dbmdz/bert-base-turkish-cased - Top 5 Accuracy: 43.10%

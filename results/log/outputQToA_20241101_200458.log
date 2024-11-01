@@ -1,4 +1,0 @@
-2024-11-01 20:04:58,524 - INFO - Reading CSV file...
-2024-11-01 20:04:58,535 - INFO - CSV file successfully read.
-2024-11-01 20:04:58,970 - INFO - Using device: cuda
-2024-11-01 20:05:28,959 - ERROR - Error in multiprocessing: float division by zero

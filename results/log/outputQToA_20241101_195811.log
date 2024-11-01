@@ -1,4 +1,0 @@
-2024-11-01 19:58:11,077 - INFO - Reading CSV file...
-2024-11-01 19:58:11,088 - INFO - CSV file successfully read.
-2024-11-01 19:58:11,657 - INFO - Using device: cuda
-2024-11-01 19:58:50,958 - INFO - Processing completed for all models.

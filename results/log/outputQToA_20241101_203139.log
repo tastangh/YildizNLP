@@ -1,0 +1,4 @@
+2024-11-01 20:31:39,195 - INFO - Reading CSV file...
+2024-11-01 20:31:39,207 - INFO - CSV file successfully read.
+2024-11-01 20:31:39,288 - INFO - Using device: cuda
+2024-11-01 20:31:39,291 - INFO - Processing model: nomic-ai/nomic-embed-text-v1
