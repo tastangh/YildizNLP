@@ -30,6 +30,11 @@ logging.basicConfig(
 
 # Model names
 model_names = [
+    "jinaai/jina-embeddings-v3",
+    "sentence-transformers/all-MiniLM-L12-v2",
+    "intfloat/multilingual-e5-large-instruct",
+    "BAAI/bge-m3",
+    "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
 

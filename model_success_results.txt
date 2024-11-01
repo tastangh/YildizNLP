@@ -1,0 +1,3 @@
+Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)
+-----------------------------------------
+dbmdz/bert-base-turkish-cased | 51.00 | 65.00

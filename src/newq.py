@@ -1,91 +1,150 @@
-import pandas as pd
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from transformers import AutoTokenizer, AutoModel
 import torch
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-from tqdm import tqdm
-import logging
-import os
-import datetime
-import torch.multiprocessing as mp
+import pandas as pd
+from transformers import AutoTokenizer, AutoModel
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import train_test_split
-import torch.optim as optim
+from sklearn.manifold import TSNE
+import numpy as np
+import matplotlib.pyplot as plt
+from multiprocessing import Pool, cpu_count, set_start_method
+from tqdm import tqdm
 
-# Set up logging
-log_dir = 'results/log'
-os.makedirs(log_dir, exist_ok=True)
+# CUDA kontrolü
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Create a unique filename
-timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-log_file_path = os.path.join(log_dir, f'outputQToA_{timestamp}.log')
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file_path),
-        logging.StreamHandler()
-    ]
-)
-
-
-# Model names
+# Model isimleri
 model_names = [
+    # "jinaai/jina-embeddings-v3",
+    # "sentence-transformers/all-MiniLM-L12-v2",
+    # "intfloat/multilingual-e5-large-instruct",
+    # "BAAI/bge-m3",
+    # "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
 
-# Load CSV file
-question_answer_path = 'data/results/sampled_question_answer_for_question.csv'
-try:
-    logging.info("Reading CSV file...")
-    questions_df = pd.read_csv(question_answer_path, sep=';')
-    logging.info("CSV file successfully read.")
-except Exception as e:
-    logging.error(f"Error reading CSV file: {e}")
-    raise
-
-# Extract questions and answers
-questions = questions_df['question'].tolist()
-answers = questions_df['answer'].tolist()
-
-# Split the dataset into training, validation, and test sets (80% train, 10% val, 10% test)
-questions_train, questions_temp, answers_train, answers_temp = train_test_split(questions, answers, test_size=0.2, random_state=42)
-questions_val, questions_test, answers_val, answers_test = train_test_split(questions_temp, answers_temp, test_size=0.5, random_state=42)
-
-
-# Set device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-logging.info(f"Using device: {device}")
-
-# Function to get embeddings for a single model
-def get_embeddings(texts, model_name):
+# Modelleri ve tokenizasyonu yükleyin
+def load_model(model_name):
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
+    return tokenizer, model
 
-    embeddings = []
-    logging.info(f"Getting embeddings for {model_name}...")
-    for text in tqdm(texts, desc=f"Processing {model_name}", leave=False):
-        inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt").to(device)
+# CSV dosyasından veri yükleme
+question_answer_path = 'data/results/sampled_question_answer_for_question.csv'
+data = pd.read_csv(question_answer_path, sep=';', header=0)
+data.columns = ['index', 'question', 'answer']
+
+# Soruları ve cevapları ayır
+questions = data['question'].tolist()
+answers = data['answer'].tolist()
+
+# Veriyi train, validation ve test setlerine ayır
+train_questions, temp_questions, train_answers, temp_answers = train_test_split(
+    questions, answers, test_size=0.2, random_state=42)
+val_questions, test_questions, val_answers, test_answers = train_test_split(
+    temp_questions, temp_answers, test_size=0.5, random_state=42)
+
+# Temsil verilerini çıkartma
+def get_representation(model_data, texts):
+    tokenizer, model = model_data
+    representations = []
+    for text in tqdm(texts, desc="Tokenizing texts", leave=False):  # İlerleme çubuğu ekle
+        # Tokenize the text without altering the data types
+        inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True).to(device)
+
         with torch.no_grad():
+            # Ensure that the input is on the correct device without changing its type
             outputs = model(**inputs)
 
-        # Convert to float32 if necessary
-        embedding = outputs.last_hidden_state.mean(dim=1).float()
-        
-        # Resize embeddings to a common size
-        target_dim = 512  # Or the desired fixed dimension
-        if embedding.size(1) > target_dim:
-            embedding = embedding[:, :target_dim]
-        elif embedding.size(1) < target_dim:
-            padding = torch.zeros((1, target_dim - embedding.size(1))).to(device)
-            embedding = torch.cat([embedding, padding], dim=1)
+            # Çıktıyı Float32'e çevir
+            last_hidden_state = outputs.last_hidden_state.float()
 
-        embeddings.append(embedding)
+        # Use the mean of the last hidden state to represent the input
+        representations.append(last_hidden_state.mean(dim=1).cpu().numpy())
+    return np.vstack(representations)
+
+#Model Eğitme
+def train_model(model_data, train_questions, train_answers, val_questions, val_answers, epochs=5, lr=1e-5):
+    tokenizer, model = model_data
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
-    embeddings = torch.vstack(embeddings).cpu()  # Move to CPU for memory optimization
-    logging.info(f"Embeddings for {model_name} obtained.")
-    return embeddings
+    train_question_reps = get_representation(model_data, train_questions)
+    train_answer_reps = get_representation(model_data, train_answers)
+
+    for epoch in range(epochs):
+        model.train()
+        optimizer.zero_grad()
+
+        # Cosine similarity
+        similarities = cosine_similarity(train_question_reps, train_answer_reps)
+        loss = 1 - torch.tensor(similarities, requires_grad=True).mean()  # Cosine similarity loss
+        loss.backward()  # PyTorch tensor üzerinde backward çağrısı
+        optimizer.step()
+
+        # Evaluate on validation set
+        val_question_reps = get_representation(model_data, val_questions)
+        val_answer_reps = get_representation(model_data, val_answers)
+        val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
+        
+        val_loss = 1 - torch.tensor(val_similarities).mean()  # Validation loss
+        print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss.item():.4f}, Validation Loss: {val_loss:.4f}")
+
+
+# Başarıları değerlendirme
+def evaluate_model(model_name):
+    model_data = load_model(model_name)
+    train_model(model_data, train_questions, train_answers, val_questions, val_answers)
+
+    # Final evaluation on the test set
+    question_reps = get_representation(model_data, test_questions)
+    answer_reps = get_representation(model_data, test_answers)
+    similarities = cosine_similarity(question_reps, answer_reps)
+
+    top1_success = 0
+    top5_success = 0
+
+    for i in range(len(test_questions)):
+        top_indices = np.argsort(similarities[i])[-5:]
+        if top_indices[-1] == i:
+            top1_success += 1
+        if i in top_indices:
+            top5_success += 1
+
+    total_questions = len(test_questions)
+    
+    top1_percentage = (top1_success / total_questions) * 100
+    top5_percentage = (top5_success / total_questions) * 100
+
+    return model_name, top1_percentage, top5_percentage
+
+# Ana işlem
+if __name__ == '__main__':
+    set_start_method('spawn')
+
+    with Pool(cpu_count()) as pool:
+        results = list(tqdm(pool.imap(evaluate_model, model_names), total=len(model_names), desc="Evaluating models"))
+
+    with open("model_success_results.txt", "w") as f:
+        f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")
+        f.write("-----------------------------------------\n")
+        for model_name, top1, top5 in results:
+            f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
+
+    print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
+
+    # t-SNE uygulama ve görselleştirme
+    for model_name in model_names:
+        model_data = load_model(model_name)
+        all_representations = np.vstack([get_representation(model_data, questions)] + 
+                                         [get_representation(model_data, [answer]) for answer in answers])
+        tsne = TSNE(n_components=2, random_state=42)
+        tsne_results = tsne.fit_transform(all_representations)
+
+        plt.figure(figsize=(10, 6))
+        for i, label in enumerate(["Soru"] * len(questions) + ["Cevap"] * len(answers)):
+            plt.scatter(tsne_results[i, 0], tsne_results[i, 1], label=label, alpha=0.6)
+        plt.title(f"{model_name} - t-SNE Görselleştirme")
+        plt.xlabel("t-SNE 1")
+        plt.ylabel("t-SNE 2")
+        plt.legend()
+        plt.grid()
+        plt.show()
