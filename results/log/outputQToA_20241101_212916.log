@@ -1,0 +1,5 @@
+2024-11-01 21:29:16,472 - INFO - Reading CSV file...
+2024-11-01 21:29:16,485 - INFO - CSV file successfully read.
+2024-11-01 21:29:17,003 - INFO - Using device: cuda
+2024-11-01 21:29:17,004 - INFO - Training model: dbmdz/bert-base-turkish-cased
+2024-11-01 21:29:20,997 - INFO - Epoch 1/2

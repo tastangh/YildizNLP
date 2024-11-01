@@ -88,26 +88,26 @@ def get_embeddings(texts, model_name):
     logging.info(f"Embeddings for {model_name} obtained.")
     return embeddings
 
-def calculate_loss(angles):
-    """
-    Calculate the loss based on the angles between question and answer embeddings.
+# def calculate_loss(angles):
+#     """
+#     Calculate the loss based on the angles between question and answer embeddings.
     
-    Args:
-        angles (numpy.ndarray): Array of angles between question and answer embeddings.
+#     Args:
+#         angles (numpy.ndarray): Array of angles between question and answer embeddings.
     
-    Returns:
-        torch.Tensor: Calculated loss value.
-    """
-    # Create a tensor from angles with requires_grad set to True
-    angles_tensor = torch.tensor(angles, dtype=torch.float32, requires_grad=True).to(device)
+#     Returns:
+#         torch.Tensor: Calculated loss value.
+#     """
+#     # Create a tensor from angles with requires_grad set to True
+#     angles_tensor = torch.tensor(angles, dtype=torch.float32, requires_grad=True).to(device)
 
-    # Loss calculation (mean of angles)
-    loss = torch.mean(angles_tensor)
+#     # Loss calculation (mean of angles)
+#     loss = torch.mean(angles_tensor)
     
-    return loss
+#     return loss
 
 
-def train_and_validate_model(model_name, questions_train, answers_train, questions_val, answers_val, num_epochs=2, batch_size=800, learning_rate=1e-5):
+def train_and_validate_model(model_name, questions_train, answers_train, questions_val, answers_val, num_epochs=1, batch_size=800, learning_rate=10e-5):
     """
     Train the specified model with the given questions and answers, and validate after each epoch.
     
@@ -146,10 +146,10 @@ def train_and_validate_model(model_name, questions_train, answers_train, questio
             angles_train = np.arccos(np.clip(similarities_train, -1, 1))
 
             # Define a loss function
-            loss = calculate_loss(angles_train)  # Implement your own loss function
-            optimizer.zero_grad()  # Zero gradients before backward pass
-            loss.backward()  # Backpropagation
-            optimizer.step()  # Update weights
+            # loss = calculate_loss(angles_train)  # Implement your own loss function
+            # optimizer.zero_grad()  # Zero gradients before backward pass
+            # loss.backward()  # Backpropagation
+            # optimizer.step()  # Update weights
 
             # Calculate accuracy metrics for training (Top-1 and Top-5 accuracy)
             top_1_indices_train = np.argmin(angles_train, axis=1)
