@@ -1,0 +1,5 @@
+dbmdz/bert-base-turkish-cased
+Training Accuracy: 29.12%
+Validation Accuracy: 47.00%
+Test Accuracy: 52.00%
+

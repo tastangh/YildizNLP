@@ -51,35 +51,6 @@ except Exception as e:
     logging.error(f"Error reading CSV file: {e}")
     raise
 
-# Function to clean and preprocess text
-def clean_text(text):
-    text = text.lower()
-    text = ''.join(e for e in text if e.isalnum() or e.isspace())
-    return text
-
-# Apply cleaning
-questions_df['question'] = questions_df['question'].apply(clean_text)
-questions_df['answer'] = questions_df['answer'].apply(clean_text)
-
-# Simple synonym replacement for data augmentation
-synonyms = {
-    'iyi': 'güzel',
-    'kötü': 'fena',
-    'hızlı': 'çabuk',
-    'yavaş': 'ağır',
-    'güçlü': 'kuvvetli'
-}
-
-def augment_text(text):
-    words = text.split()
-    for i, word in enumerate(words):
-        if word in synonyms:
-            words[i] = synonyms[word] if random.random() > 0.5 else word
-    return ' '.join(words)
-
-questions_df['question'] = questions_df['question'].apply(augment_text)
-questions_df['answer'] = questions_df['answer'].apply(augment_text)
-
 # Extract questions and answers
 questions = questions_df['question'].tolist()
 answers = questions_df['answer'].tolist()
@@ -95,7 +66,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logging.info(f"Using device: {device}")
 
 # Hyperparameters
-num_epochs = 5  # Set the number of epochs
+num_epochs = 1  # Set the number of epochs
 learning_rate = 1e-5  # Set the learning rate
 batch_size = 1000  # Set the mini-batch size
 # patience = 2  # For early stopping
@@ -127,28 +98,6 @@ def get_embeddings(texts, model_name):
         raise
 
     return embeddings
-
-# Function to visualize embeddings with t-SNE
-def visualize_tsne(question_embeddings, answer_embeddings, model_name):
-    try:
-        # Visualization with TSNE
-        logging.info(f"Applying TSNE for {model_name}...")
-        tsne = TSNE(n_components=2, random_state=42)
-        all_embeddings = torch.cat((question_embeddings, answer_embeddings), dim=0)
-        tsne_results = tsne.fit_transform(all_embeddings)
-
-        # Visualization
-        plt.figure(figsize=(10, 8))
-        plt.scatter(tsne_results[:len(questions_df), 0], tsne_results[:len(questions_df), 1], label='Questions', color='blue', alpha=0.5)
-        plt.scatter(tsne_results[len(questions_df):, 0], tsne_results[len(questions_df):, 1], label='Answers', color='red', alpha=0.5)
-        plt.title(f'TSNE Visualization for {model_name}')
-        plt.xlabel('TSNE Component 1')
-        plt.ylabel('TSNE Component 2')
-        plt.legend()
-        plt.show()
-        logging.info(f"TSNE visualization completed for {model_name}.")
-    except Exception as e:
-        logging.error(f"Error during TSNE visualization for {model_name}: {e}")
 
 # Function to process a model
 def process_model(model_name):
@@ -278,7 +227,6 @@ def process_model(model_name):
                 f.write(f"Test Top 5: {test_top_5_accuracy:.2f}%\n")
                 f.write("\n")
     
-        visualize_tsne(test_question_embeddings, test_answer_embeddings, model_name)
 
     except Exception as e:
         logging.error(f"Error processing model {model_name}: {e}")

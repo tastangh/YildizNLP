@@ -1,0 +1,4 @@
+2024-11-01 20:04:02,130 - INFO - Reading CSV file...
+2024-11-01 20:04:02,142 - INFO - CSV file successfully read.
+2024-11-01 20:04:02,583 - INFO - Using device: cuda
+2024-11-01 20:04:29,440 - ERROR - Error in multiprocessing: element 0 of tensors does not require grad and does not have a grad_fn
