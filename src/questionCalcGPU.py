@@ -51,8 +51,8 @@ except Exception as e:
 questions = questions_df['question'].tolist()
 answers = questions_df['answer'].tolist()
 
-# Split the dataset into training, validation, and test sets (70% train, 15% val, 15% test)
-questions_train, questions_temp, answers_train, answers_temp = train_test_split(questions, answers, test_size=0.3, random_state=42)
+# Split the dataset into training, validation, and test sets (80% train, 10% val, 10% test)
+questions_train, questions_temp, answers_train, answers_temp = train_test_split(questions, answers, test_size=0.2, random_state=42)
 questions_val, questions_test, answers_val, answers_test = train_test_split(questions_temp, answers_temp, test_size=0.5, random_state=42)
 
 # Set device
@@ -107,7 +107,7 @@ def calculate_loss(angles):
     return loss
 
 
-def train_and_validate_model(model_name, questions_train, answers_train, questions_val, answers_val, num_epochs=5, batch_size=32, learning_rate=1e-5):
+def train_and_validate_model(model_name, questions_train, answers_train, questions_val, answers_val, num_epochs=2, batch_size=800, learning_rate=1e-5):
     """
     Train the specified model with the given questions and answers, and validate after each epoch.
     
@@ -127,7 +127,6 @@ def train_and_validate_model(model_name, questions_train, answers_train, questio
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
     for epoch in range(num_epochs):
         logging.info(f"Epoch {epoch + 1}/{num_epochs}")
         
