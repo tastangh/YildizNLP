@@ -1,0 +1,4 @@
+2024-11-01 21:49:20,542 - INFO - Reading CSV file...
+2024-11-01 21:49:20,554 - INFO - CSV file successfully read.
+2024-11-01 21:49:20,994 - INFO - Using device: cuda
+2024-11-01 21:49:48,835 - ERROR - Error in multiprocessing: list indices must be integers or slices, not tuple
