@@ -33,6 +33,16 @@ logging.basicConfig(
     ]
 )
 
+# Model names
+model_names = [
+    # "jinaai/jina-embeddings-v3",
+    # "sentence-transformers/all-MiniLM-L12-v2",
+    # "intfloat/multilingual-e5-large-instruct",
+    # "BAAI/bge-m3",
+    # "nomic-ai/nomic-embed-text-v1",
+    "dbmdz/bert-base-turkish-cased"
+]
+
 # Load CSV file
 question_answer_path = 'data/results/sampled_question_answer_for_question.csv'
 try:
@@ -56,3 +66,44 @@ valid_questions, test_questions, valid_answers, test_answers = train_test_split(
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logging.info(f"Using device: {device}")
+
+
+
+# Function to get embeddings for a single model
+def get_embeddings(texts, model_name): 
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
+    except Exception as e:
+        logging.error(f"Error loading model or tokenizer for {model_name}: {e}")
+        raise
+    
+    embeddings = []
+    try:
+        logging.info(f"Getting embeddings for {model_name}...")
+        for text in tqdm(texts, desc=f"Processing {model_name}", leave=False):
+            inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt").to(device)
+            with torch.no_grad():
+                outputs = model(**inputs)
+            
+            embedding = outputs.last_hidden_state.mean(dim=1).float()
+            embeddings.append(embedding)
+        
+        embeddings = torch.vstack(embeddings).cpu()
+        logging.info(f"Embeddings for {model_name} obtained.")
+    except Exception as e:
+        logging.error(f"Error obtaining embeddings for {model_name}: {e}")
+        raise
+
+    return embeddings
+
+
+if __name__ == '__main__':
+    # Set multiprocessing start method to 'spawn'
+    mp.set_start_method('spawn', force=True)
+
+    # Start multiprocessing
+    with mp.Pool(processes=len(model_names)) as pool:
+        pool.map(process_model, model_names)
+
+    logging.info("Processing completed for all models.") 
