@@ -1,0 +1,11 @@
+2024-11-01 20:43:56,570 - INFO - Reading CSV file...
+2024-11-01 20:43:56,582 - INFO - CSV file successfully read.
+2024-11-01 20:43:56,654 - INFO - Using device: cuda
+2024-11-01 20:43:56,657 - INFO - Processing model: dbmdz/bert-base-turkish-cased
+2024-11-01 20:43:56,657 - INFO - Training model: dbmdz/bert-base-turkish-cased
+2024-11-01 20:44:01,465 - INFO - Epoch 1/5
+2024-11-01 20:44:02,866 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:44:03,299 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:44:04,672 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:44:04,998 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:44:05,009 - ERROR - Error processing model dbmdz/bert-base-turkish-cased: element 0 of tensors does not require grad and does not have a grad_fn

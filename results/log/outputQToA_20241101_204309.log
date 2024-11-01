@@ -1,0 +1,11 @@
+2024-11-01 20:43:09,552 - INFO - Reading CSV file...
+2024-11-01 20:43:09,564 - INFO - CSV file successfully read.
+2024-11-01 20:43:09,653 - INFO - Using device: cuda
+2024-11-01 20:43:09,659 - INFO - Processing model: dbmdz/bert-base-turkish-cased
+2024-11-01 20:43:09,660 - INFO - Training model: dbmdz/bert-base-turkish-cased
+2024-11-01 20:43:13,807 - INFO - Epoch 1/5
+2024-11-01 20:43:15,257 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:43:15,770 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:43:17,207 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:43:17,608 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:43:17,617 - ERROR - Error processing model dbmdz/bert-base-turkish-cased: name 'calculate_loss' is not defined
