@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing import Pool, cpu_count, set_start_method
 from tqdm import tqdm
+from torch.utils.data import DataLoader, TensorDataset
 
 # CUDA kontrolü
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -29,7 +30,7 @@ def load_model(model_name):
     return tokenizer, model
 
 # CSV dosyasından veri yükleme
-question_answer_path = 'data/results/sampled_question_answer_for_question.csv'
+question_answer_path = 'data/results/sampled_question_answer.csv'
 data = pd.read_csv(question_answer_path, sep=';', header=0)
 data.columns = ['index', 'question', 'answer']
 
@@ -39,7 +40,7 @@ answers = data['answer'].tolist()
 
 # Veriyi train, validation ve test setlerine ayır
 train_questions, temp_questions, train_answers, temp_answers = train_test_split(
-    questions, answers, test_size=0.2, random_state=42)
+    questions, answers, test_size=0.3, random_state=42)
 val_questions, test_questions, val_answers, test_answers = train_test_split(
     temp_questions, temp_answers, test_size=0.5, random_state=42)
 
@@ -62,23 +63,34 @@ def get_representation(model_data, texts):
         representations.append(last_hidden_state.mean(dim=1).cpu().numpy())
     return np.vstack(representations)
 
-#Model Eğitme
-def train_model(model_data, train_questions, train_answers, val_questions, val_answers, epochs=5, lr=1e-5):
+# Model Eğitme
+def train_model(model_data, train_questions, train_answers, val_questions, val_answers, epochs=50, lr=1e-4, batch_size=32):
     tokenizer, model = model_data
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    
+
+    # Temsil verilerini çıkartma
     train_question_reps = get_representation(model_data, train_questions)
     train_answer_reps = get_representation(model_data, train_answers)
 
+    # TensorDataset ve DataLoader ile batch'ler oluştur
+    train_data = TensorDataset(torch.tensor(train_question_reps), torch.tensor(train_answer_reps))
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+
     for epoch in range(epochs):
         model.train()
-        optimizer.zero_grad()
-
-        # Cosine similarity
-        similarities = cosine_similarity(train_question_reps, train_answer_reps)
-        loss = 1 - torch.tensor(similarities, requires_grad=True).mean()  # Cosine similarity loss
-        loss.backward()  # PyTorch tensor üzerinde backward çağrısı
-        optimizer.step()
+        total_loss = 0
+        
+        for batch in train_loader:
+            optimizer.zero_grad()
+            questions, answers = batch
+            
+            # Cosine similarity hesapla
+            similarities = cosine_similarity(questions.numpy(), answers.numpy())
+            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()  # Cosine similarity loss
+            loss.backward()  # Backward çağrısı
+            optimizer.step()
+            
+            total_loss += loss.item()
 
         # Evaluate on validation set
         val_question_reps = get_representation(model_data, val_questions)
@@ -86,7 +98,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
         val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
         
         val_loss = 1 - torch.tensor(val_similarities).mean()  # Validation loss
-        print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss.item():.4f}, Validation Loss: {val_loss:.4f}")
+        print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
 
 
 # Başarıları değerlendirme
