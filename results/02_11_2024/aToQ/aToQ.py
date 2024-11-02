@@ -95,7 +95,7 @@ def train_model(model_data, model_name, train_questions, train_answers, val_ques
         # Validate on validation set
         val_question_reps = get_representation(model_data, val_questions)
         val_answer_reps = get_representation(model_data, val_answers)
-        val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
+        val_similarities = cosine_similarity(val_answer_reps,val_question_reps)
         
         val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
