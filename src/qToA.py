@@ -15,9 +15,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Model isimleri
 model_names = [
+    "jinaai/jina-embeddings-v3",
+    "sentence-transformers/all-MiniLM-L12-v2",
+    "intfloat/multilingual-e5-large-instruct",
+    "BAAI/bge-m3",
+    "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
-
 # Modelleri ve tokenizasyonu yükleyin
 def load_model(model_name):
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -51,19 +55,14 @@ def get_representation(model_data, texts):
         representations.append(last_hidden_state.cpu().numpy())
     return np.vstack(representations)
 
-# Top-k kayıp fonksiyonu
-def top_k_loss(similarities, true_index, k=5):
-    top_indices = np.argsort(similarities)[-k:]
-    return 0 if true_index in top_indices else 1  # 0: doğru, 1: yanlış
-
 # Model Eğitme
 def train_model(model_data, train_questions, train_answers, val_questions, val_answers, 
-                epochs=50, lr=1e-4, batch_size=800, patience=5):
+                epochs=50, lr=1e-5, batch_size=400, patience=5):
     tokenizer, model = model_data
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=2)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
     # Temsil verilerini çıkartma
     train_question_reps = get_representation(model_data, train_questions)
@@ -77,7 +76,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
     epochs_without_improvement = 0
 
     for epoch in range(epochs):
-        model.train()  # Eğitim modu
+        model.train()
         total_loss = 0
         
         for batch in train_loader:
@@ -86,9 +85,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             
             # Cosine similarity hesapla
             similarities = cosine_similarity(questions.numpy(), answers.numpy())
-            # loss = 1 - torch.tensor(similarities, requires_grad=True, dtype=torch.float32).mean()
-            losses = [top_k_loss(similarities[i], i, k=5) for i in range(len(questions))]
-            loss = torch.tensor(losses, requires_grad=True, dtype=torch.float32, device=device).mean()  # Ortalamayı al
+            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()
             loss.backward()
             optimizer.step()
             
@@ -98,40 +95,38 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
         val_question_reps = get_representation(model_data, val_questions)
         val_answer_reps = get_representation(model_data, val_answers)
         val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
-        # val_loss = 1 - torch.tensor(val_similarities).mean()
-        val_losses = [top_k_loss(val_similarities[i], i, k=5) for i in range(len(val_questions))]
-        val_loss = torch.tensor(val_losses, dtype=torch.float32, device=device).mean()
-
+        
+        val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
 
+        # Learning rate scheduler'ı güncelle
         scheduler.step(val_loss)
 
+        # Son öğrenme oranını yazdır
         current_lr = scheduler.get_last_lr()[0]
-        print(f"Current Learning Rate: {current_lr:.10f}")
+        print(f"Current Learning Rate: {current_lr:.11f}")
 
+        # Early stopping check
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             epochs_without_improvement = 0
-            torch.save(model.state_dict(), 'best_model.pth')  # En iyi modeli kaydet
+            model_save_path = f'best_model_{model_name.replace("/", "_")}.pth'
+            torch.save(model.state_dict(), model_save_path)  # En iyi modeli kaydet
         else:
             epochs_without_improvement += 1
             
         if epochs_without_improvement >= patience:
             print("Early stopping triggered")
             break
-
-# Modeli değerlendirme moduna al ve en iyi modeli yükle
+# Başarıları değerlendirme
 def evaluate_model(model_name):
-    model_data = load_model(model_name)
-    
-
-    # Eğitim işlemi yapılmadan önce modelin performansını değerlendir
+    model_data = load_model(model_name)  # Model ve tokenizer birlikte yükleniyor
     train_model(model_data, train_questions, train_answers, val_questions, val_answers)
 
-    # En iyi modeli yükle
-    model = model_data[1]
-    model.load_state_dict(torch.load('best_model.pth', weights_only=True))
-    model.eval()  # Değerlendirme modu
+    # En iyi modelin ağırlıklarını yükleyin
+    model = model_data[1]  # model_data içindeki model nesnesini alın
+    model.load_state_dict(torch.load(f'best_model_{model_name.replace("/", "_")}.pth'))
+    model.eval()
 
     # Final evaluation on the test set
     question_reps = get_representation(model_data, test_questions)
@@ -149,7 +144,7 @@ def evaluate_model(model_name):
             top5_success += 1
 
     total_questions = len(test_questions)
-    
+
     top1_percentage = (top1_success / total_questions) * 100
     top5_percentage = (top5_success / total_questions) * 100
 
