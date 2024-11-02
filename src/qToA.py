@@ -51,9 +51,14 @@ def get_representation(model_data, texts):
         representations.append(last_hidden_state.cpu().numpy())
     return np.vstack(representations)
 
+# Top-k kayıp fonksiyonu
+def top_k_loss(similarities, true_index, k=5):
+    top_indices = np.argsort(similarities)[-k:]
+    return 0 if true_index in top_indices else 1  # 0: doğru, 1: yanlış
+
 # Model Eğitme
 def train_model(model_data, train_questions, train_answers, val_questions, val_answers, 
-                epochs=50, lr=1e-4, batch_size=150, patience=5):
+                epochs=50, lr=1e-4, batch_size=800, patience=5):
     tokenizer, model = model_data
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
@@ -81,35 +86,33 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             
             # Cosine similarity hesapla
             similarities = cosine_similarity(questions.numpy(), answers.numpy())
-            # Kayıp fonksiyonu
-            loss = 1 - torch.tensor(similarities, requires_grad=True, dtype=torch.float32).mean()
+            # loss = 1 - torch.tensor(similarities, requires_grad=True, dtype=torch.float32).mean()
+            losses = [top_k_loss(similarities[i], i, k=5) for i in range(len(questions))]
+            loss = torch.tensor(losses, requires_grad=True, dtype=torch.float32, device=device).mean()  # Ortalamayı al
             loss.backward()
             optimizer.step()
             
             total_loss += loss.item()
 
         # Validate on validation set
-        model.eval()  # Değerlendirme modu
         val_question_reps = get_representation(model_data, val_questions)
         val_answer_reps = get_representation(model_data, val_answers)
         val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
+        # val_loss = 1 - torch.tensor(val_similarities).mean()
+        val_losses = [top_k_loss(val_similarities[i], i, k=5) for i in range(len(val_questions))]
+        val_loss = torch.tensor(val_losses, dtype=torch.float32, device=device).mean()
 
-        val_loss = 1 - torch.tensor(val_similarities).mean()
-        
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
 
-        # Learning rate scheduler'ı güncelle
         scheduler.step(val_loss)
 
-        # Son öğrenme oranını yazdır
         current_lr = scheduler.get_last_lr()[0]
         print(f"Current Learning Rate: {current_lr:.10f}")
 
-        # Early stopping check
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             epochs_without_improvement = 0
-            torch.save(model.state_dict(), 'best_model.pth')
+            torch.save(model.state_dict(), 'best_model.pth')  # En iyi modeli kaydet
         else:
             epochs_without_improvement += 1
             
@@ -117,10 +120,18 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             print("Early stopping triggered")
             break
 
-# Başarıları değerlendirme
+# Modeli değerlendirme moduna al ve en iyi modeli yükle
 def evaluate_model(model_name):
     model_data = load_model(model_name)
+    
+
+    # Eğitim işlemi yapılmadan önce modelin performansını değerlendir
     train_model(model_data, train_questions, train_answers, val_questions, val_answers)
+
+    # En iyi modeli yükle
+    model = model_data[1]
+    model.load_state_dict(torch.load('best_model.pth', weights_only=True))
+    model.eval()  # Değerlendirme modu
 
     # Final evaluation on the test set
     question_reps = get_representation(model_data, test_questions)
