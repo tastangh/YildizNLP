@@ -16,11 +16,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Model isimleri
 model_names = [
     "jinaai/jina-embeddings-v3",
-    # "sentence-transformers/all-MiniLM-L12-v2",
-    # "intfloat/multilingual-e5-large-instruct",
-    # "BAAI/bge-m3",
-    # "nomic-ai/nomic-embed-text-v1",
-    # "dbmdz/bert-base-turkish-cased"
+    "sentence-transformers/all-MiniLM-L12-v2",
+    "intfloat/multilingual-e5-large-instruct",
+    "BAAI/bge-m3",
+    "nomic-ai/nomic-embed-text-v1",
+    "dbmdz/bert-base-turkish-cased"
 ]
 # Modelleri ve tokenizasyonu yükleyin
 def load_model(model_name):
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     for model_name in tqdm(model_names, desc="Evaluating models"):
         result = evaluate_model(model_name)
         results.append(result)
-        
+
     with open("model_success_results.txt", "w") as f:
         f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")
         f.write("-----------------------------------------\n")
@@ -166,29 +166,31 @@ if __name__ == '__main__':
 
     print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
 
-    # # t-SNE uygulama ve görselleştirme
-    # for model_name in model_names:
-    #     model_data = load_model(model_name)
-    #     all_representations = np.vstack([get_representation(model_data, questions)] + 
-    #                                     [get_representation(model_data, [answer]) for answer in answers])
+    # t-SNE uygulama ve görselleştirme
+    for model_name in model_names:
+        model_data = load_model(model_name)
+        all_representations = np.vstack([get_representation(model_data, questions)] + 
+                                        [get_representation(model_data, [answer]) for answer in answers])
         
-    #     # t-SNE uygulama
-    #     tsne = TSNE(n_components=2, random_state=42)
-    #     tsne_results = tsne.fit_transform(all_representations)
+        # t-SNE uygulama
+        tsne = TSNE(n_components=2, random_state=42)
+        tsne_results = tsne.fit_transform(all_representations)
 
-    #     plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 6))
         
-    #     plt.scatter(tsne_results[:len(questions), 0], tsne_results[:len(questions), 1], 
-    #                 label='Soru', color='black', alpha=0.6)  # Soru için siyah
-    #     plt.scatter(tsne_results[len(questions):, 0], tsne_results[len(questions):, 1], 
-    #                 label='Cevap', color='red', alpha=0.6)  # Cevap için kırmızı
+        plt.scatter(tsne_results[:len(questions), 0], tsne_results[:len(questions), 1], 
+                    label='Soru', color='black', alpha=0.6)  # Soru için siyah
+        plt.scatter(tsne_results[len(questions):, 0], tsne_results[len(questions):, 1], 
+                    label='Cevap', color='red', alpha=0.6)  # Cevap için kırmızı
         
-    #     plt.title(f"{model_name} - t-SNE Görselleştirme")
-    #     plt.xlabel("t-SNE 1")
-    #     plt.ylabel("t-SNE 2")
-    #     plt.legend()
-    #     plt.grid()
+        plt.title(f"{model_name} - t-SNE Görselleştirme")
+        plt.xlabel("t-SNE 1")
+        plt.ylabel("t-SNE 2")
+        plt.legend()
+        plt.grid()
         
-    #     # Grafiği PNG olarak kaydet
-    #     plt.savefig(f"{model_name.replace('/', '_')}_tsne_visualization.png")
-    #     plt.close()  # Grafiği kapat
+        # Grafiği PNG olarak kaydet
+        plt.savefig(f"{model_name.replace('/', '_')}_tsne_visualization.png")
+        plt.close()  # Grafiği kapat
+
+

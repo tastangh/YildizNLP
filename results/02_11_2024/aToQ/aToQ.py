@@ -22,6 +22,7 @@ model_names = [
     "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
+
 # Modelleri ve tokenizasyonu yükleyin
 def load_model(model_name):
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -61,7 +62,7 @@ def train_model(model_data, model_name, train_questions, train_answers, val_ques
     tokenizer, model = model_data
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    # Öğrenme oranı zamanlayıcısı
+    # Learning rate scheduler
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
     # Temsil verilerini çıkartma
@@ -84,7 +85,7 @@ def train_model(model_data, model_name, train_questions, train_answers, val_ques
             questions, answers = batch
             
             # Cosine similarity hesapla
-            similarities = cosine_similarity(questions.numpy(), answers.numpy())
+            similarities = cosine_similarity(answers.numpy(), questions.numpy())
             loss = 1 - torch.tensor(similarities, requires_grad=True).mean()
             loss.backward()
             optimizer.step()
@@ -106,7 +107,7 @@ def train_model(model_data, model_name, train_questions, train_answers, val_ques
         current_lr = scheduler.get_last_lr()[0]
         print(f"Current Learning Rate: {current_lr:.11f}")
 
-        # Erken durdurma kontrolü
+        # Early stopping check
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             epochs_without_improvement = 0
@@ -129,34 +130,34 @@ def evaluate_model(model_name):
     model.load_state_dict(torch.load(f'best_model_{model_name.replace("/", "_")}.pth', weights_only=True))
     model.eval()
 
-    # Test setinin son değerlendirmesi
+    # Final evaluation on the test set
     question_reps = get_representation(model_data, test_questions)
     answer_reps = get_representation(model_data, test_answers)
-    similarities = cosine_similarity(question_reps, answer_reps)
+    similarities = cosine_similarity (answer_reps,question_reps)
 
     top1_success = 0
     top5_success = 0
 
-    for i in range(len(test_questions)):
-        top_indices = np.argsort(similarities[i])[-5:]
-        if top_indices[-1] == i:
+    for i in range(len(test_answers)):
+        top_indices = np.argsort(similarities[i])[-5:]  # En yüksek benzerlikteki 5 soruyu al
+        if top_indices[-1] == i:  # En benzer sorunun indeksi
             top1_success += 1
-        if i in top_indices:
+        if i in top_indices:  # Top-5 içinde mi?
             top5_success += 1
 
-    total_questions = len(test_questions)
+    total_answers = len(test_answers)
 
-    top1_percentage = (top1_success / total_questions) * 100
-    top5_percentage = (top5_success / total_questions) * 100
+    top1_percentage = (top1_success / total_answers) * 100
+    top5_percentage = (top5_success / total_answers) * 100
 
     return model_name, top1_percentage, top5_percentage
 
 # Ana işlem
 if __name__ == '__main__':
-    set_start_method('spawn')
-
-    with Pool(cpu_count()) as pool:
-        results = list(tqdm(pool.imap(evaluate_model, model_names), total=len(model_names), desc="Evaluating models"))
+    results = []
+    for model_name in tqdm(model_names, desc="Evaluating models"):
+        result = evaluate_model(model_name)
+        results.append(result)
 
     with open("model_success_results.txt", "w") as f:
         f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")
@@ -165,13 +166,19 @@ if __name__ == '__main__':
             f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
 
     print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
+    with open("model_success_results.txt", "w") as f:
+        f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")
+        f.write("-----------------------------------------\n")
+        for model_name, top1, top5 in results:
+            f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
 
- 
+    print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
+
     # t-SNE uygulama ve görselleştirme
     for model_name in model_names:
         model_data = load_model(model_name)
-        all_representations = np.vstack([get_representation(model_data, questions)] + 
-                                        [get_representation(model_data, [answer]) for answer in answers])
+        all_representations = np.vstack([get_representation(model_data, answers)] + 
+                                        [get_representation(model_data, [question]) for question in questions])
         
         # t-SNE uygulama
         tsne = TSNE(n_components=2, random_state=42)
@@ -179,10 +186,10 @@ if __name__ == '__main__':
 
         plt.figure(figsize=(10, 6))
         
-        plt.scatter(tsne_results[:len(questions), 0], tsne_results[:len(questions), 1], 
-                    label='Soru', color='black', alpha=0.6)  # Soru için siyah
-        plt.scatter(tsne_results[len(questions):, 0], tsne_results[len(questions):, 1], 
-                    label='Cevap', color='red', alpha=0.6)  # Cevap için kırmızı
+        plt.scatter(tsne_results[:len(answers), 0], tsne_results[:len(answers), 1], 
+                    label='Cevap', color='black', alpha=0.6)  # Cevap için siyah
+        plt.scatter(tsne_results[len(answers):, 0], tsne_results[len(answers):, 1], 
+                    label='Soru', color='red', alpha=0.6)  # Soru için kırmızı
         
         plt.title(f"{model_name} - t-SNE Görselleştirme")
         plt.xlabel("t-SNE 1")
@@ -193,5 +200,3 @@ if __name__ == '__main__':
         # Grafiği PNG olarak kaydet
         plt.savefig(f"{model_name.replace('/', '_')}_tsne_visualization.png")
         plt.close()  # Grafiği kapat
-
-
