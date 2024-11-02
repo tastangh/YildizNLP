@@ -81,7 +81,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             
             # Cosine similarity hesapla
             similarities = cosine_similarity(questions.numpy(), answers.numpy())
-            loss = 1 - torch.tensor(similarities, dtype=torch.float32, device=device).mean()
+            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()  # Cosine similarity loss
             loss.backward()
             optimizer.step()
             
@@ -92,7 +92,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
         val_answer_reps = get_representation(model_data, val_answers)
         val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
         
-        val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()
+        val_loss = 1 - torch.tensor(val_similarities).mean()  # Validation loss
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
 
         # Learning rate scheduler'ı güncelle
