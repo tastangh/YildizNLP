@@ -15,11 +15,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Model isimleri
 model_names = [
-    "jinaai/jina-embeddings-v3",
-    "sentence-transformers/all-MiniLM-L12-v2",
-    "intfloat/multilingual-e5-large-instruct",
-    "BAAI/bge-m3",
-    "nomic-ai/nomic-embed-text-v1",
+    # "jinaai/jina-embeddings-v3",
+    # "sentence-transformers/all-MiniLM-L12-v2",
+    # "intfloat/multilingual-e5-large-instruct",
+    # "BAAI/bge-m3",
+    # "nomic-ai/nomic-embed-text-v1",
     "dbmdz/bert-base-turkish-cased"
 ]
 # Modelleri ve tokenizasyonu yükleyin
@@ -56,7 +56,7 @@ def get_representation(model_data, texts):
     return np.vstack(representations)
 
 # Model Eğitme
-def train_model(model_data, train_questions, train_answers, val_questions, val_answers, 
+def train_model(model_data, model_name, train_questions, train_answers, val_questions, val_answers, 
                 epochs=50, lr=1e-5, batch_size=400, patience=5):
     tokenizer, model = model_data
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -118,14 +118,15 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
         if epochs_without_improvement >= patience:
             print("Early stopping triggered")
             break
+
 # Başarıları değerlendirme
 def evaluate_model(model_name):
     model_data = load_model(model_name)  # Model ve tokenizer birlikte yükleniyor
-    train_model(model_data, train_questions, train_answers, val_questions, val_answers)
+    train_model(model_data, model_name, train_questions, train_answers, val_questions, val_answers)
 
     # En iyi modelin ağırlıklarını yükleyin
     model = model_data[1]  # model_data içindeki model nesnesini alın
-    model.load_state_dict(torch.load(f'best_model_{model_name.replace("/", "_")}.pth'))
+    model.load_state_dict(torch.load(f'best_model_{model_name.replace("/", "_")}.pth', weights_only=True))
     model.eval()
 
     # Final evaluation on the test set
