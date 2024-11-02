@@ -53,12 +53,12 @@ def get_representation(model_data, texts):
 
 # Model Eğitme
 def train_model(model_data, train_questions, train_answers, val_questions, val_answers, 
-                epochs=50, lr=1e-5, batch_size=400, patience=5):
+                epochs=100, lr=1e-4, batch_size=800, patience=5):
     tokenizer, model = model_data
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=1)
 
     # Temsil verilerini çıkartma
     train_question_reps = get_representation(model_data, train_questions)
@@ -81,7 +81,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             
             # Cosine similarity hesapla
             similarities = cosine_similarity(questions.numpy(), answers.numpy())
-            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()
+            loss = 1 - torch.tensor(similarities, dtype=torch.float32, device=device).mean()
             loss.backward()
             optimizer.step()
             
@@ -100,7 +100,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
 
         # Son öğrenme oranını yazdır
         current_lr = scheduler.get_last_lr()[0]
-        print(f"Current Learning Rate: {current_lr:.6f}")
+        print(f"Current Learning Rate: {current_lr:.16f}")
 
         # Early stopping check
         if val_loss < best_val_loss:
