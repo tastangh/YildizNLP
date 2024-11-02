@@ -18,9 +18,9 @@ model_names = [
     # "jinaai/jina-embeddings-v3",
     # "sentence-transformers/all-MiniLM-L12-v2",
     # "intfloat/multilingual-e5-large-instruct",
-    # "BAAI/bge-m3",
+    "BAAI/bge-m3",
     # "nomic-ai/nomic-embed-text-v1",
-    "dbmdz/bert-base-turkish-cased"
+    # "dbmdz/bert-base-turkish-cased"
 ]
 # Modelleri ve tokenizasyonu yükleyin
 def load_model(model_name):
@@ -123,11 +123,12 @@ def train_model(model_data, model_name, train_questions, train_answers, val_ques
 def evaluate_model(model_name):
     model_data = load_model(model_name)  # Model ve tokenizer birlikte yükleniyor
     train_model(model_data, model_name, train_questions, train_answers, val_questions, val_answers)
-
+    print('model yuklemesine baslandi')
     # En iyi modelin ağırlıklarını yükleyin
     model = model_data[1]  # model_data içindeki model nesnesini alın
     model.load_state_dict(torch.load(f'best_model_{model_name.replace("/", "_")}.pth', weights_only=True))
     model.eval()
+    print('model yuklemesine bitti')
 
     # Final evaluation on the test set
     question_reps = get_representation(model_data, test_questions)
@@ -153,10 +154,10 @@ def evaluate_model(model_name):
 
 # Ana işlem
 if __name__ == '__main__':
-    set_start_method('spawn')
-
-    with Pool(cpu_count()) as pool:
-        results = list(tqdm(pool.imap(evaluate_model, model_names), total=len(model_names), desc="Evaluating models"))
+    results = []
+    for model_name in tqdm(model_names, desc="Evaluating models"):
+        result = evaluate_model(model_name)
+        results.append(result)
 
     with open("model_success_results.txt", "w") as f:
         f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")

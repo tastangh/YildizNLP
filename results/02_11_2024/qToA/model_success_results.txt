@@ -1,0 +1,6 @@
+Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)
+-----------------------------------------
+sentence-transformers/all-MiniLM-L12-v2 | 51.00 | 66.00
+dbmdz/bert-base-turkish-cased | 54.00 | 66.00
+nomic-ai/nomic-embed-text-v1 | 62.00 | 71.00
+BAAI/bge-m3 | 85.00 | 95.00
