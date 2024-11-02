@@ -47,16 +47,18 @@ def get_representation(model_data, texts):
         inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True).to(device)
         with torch.no_grad():
             outputs = model(**inputs)
-            last_hidden_state = outputs.last_hidden_state.mean(dim=1).float()  # Mean alınarak temsil oluşturuluyor
+            last_hidden_state = outputs.last_hidden_state.mean(dim=1).float()
         representations.append(last_hidden_state.cpu().numpy())
     return np.vstack(representations)
 
-# Model Eğitme
 # Model Eğitme
 def train_model(model_data, train_questions, train_answers, val_questions, val_answers, 
                 epochs=50, lr=1e-5, batch_size=400, patience=5):
     tokenizer, model = model_data
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    # Learning rate scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
     # Temsil verilerini çıkartma
     train_question_reps = get_representation(model_data, train_questions)
@@ -79,7 +81,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             
             # Cosine similarity hesapla
             similarities = cosine_similarity(questions.numpy(), answers.numpy())
-            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()  # Cosine similarity loss
+            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()
             loss.backward()
             optimizer.step()
             
@@ -90,15 +92,21 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
         val_answer_reps = get_representation(model_data, val_answers)
         val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
         
-        val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()  # Validation loss
+        val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
+
+        # Learning rate scheduler'ı güncelle
+        scheduler.step(val_loss)
+
+        # Son öğrenme oranını yazdır
+        current_lr = scheduler.get_last_lr()[0]
+        print(f"Current Learning Rate: {current_lr:.6f}")
 
         # Early stopping check
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             epochs_without_improvement = 0
-            # En iyi modeli kaydet
-            torch.save(model.state_dict(), 'best_model.pth')  # En iyi modelin ağırlıklarını kaydet
+            torch.save(model.state_dict(), 'best_model.pth')
         else:
             epochs_without_improvement += 1
             
