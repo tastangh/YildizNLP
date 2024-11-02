@@ -53,12 +53,12 @@ def get_representation(model_data, texts):
 
 # Model Eğitme
 def train_model(model_data, train_questions, train_answers, val_questions, val_answers, 
-                epochs=50, lr=1e-4, batch_size=150, patience=5):
+                epochs=50, lr=1e-5, batch_size=400, patience=5):
     tokenizer, model = model_data
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=2)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
     # Temsil verilerini çıkartma
     train_question_reps = get_representation(model_data, train_questions)
@@ -72,7 +72,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
     epochs_without_improvement = 0
 
     for epoch in range(epochs):
-        model.train()  # Eğitim modu
+        model.train()
         total_loss = 0
         
         for batch in train_loader:
@@ -81,21 +81,18 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
             
             # Cosine similarity hesapla
             similarities = cosine_similarity(questions.numpy(), answers.numpy())
-            # Kayıp fonksiyonu
-            loss = 1 - torch.tensor(similarities, requires_grad=True, dtype=torch.float32).mean()
+            loss = 1 - torch.tensor(similarities, requires_grad=True).mean()
             loss.backward()
             optimizer.step()
             
             total_loss += loss.item()
 
         # Validate on validation set
-        model.eval()  # Değerlendirme modu
         val_question_reps = get_representation(model_data, val_questions)
         val_answer_reps = get_representation(model_data, val_answers)
         val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
-
-        val_loss = 1 - torch.tensor(val_similarities).mean()
         
+        val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
 
         # Learning rate scheduler'ı güncelle
@@ -103,7 +100,7 @@ def train_model(model_data, train_questions, train_answers, val_questions, val_a
 
         # Son öğrenme oranını yazdır
         current_lr = scheduler.get_last_lr()[0]
-        print(f"Current Learning Rate: {current_lr:.10f}")
+        print(f"Current Learning Rate: {current_lr:.6f}")
 
         # Early stopping check
         if val_loss < best_val_loss:
