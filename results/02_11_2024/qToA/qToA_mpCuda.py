@@ -166,6 +166,7 @@ if __name__ == '__main__':
 
     print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
 
+ 
     # t-SNE uygulama ve görselleştirme
     for model_name in model_names:
         model_data = load_model(model_name)
@@ -188,4 +189,9 @@ if __name__ == '__main__':
         plt.ylabel("t-SNE 2")
         plt.legend()
         plt.grid()
-        plt.show()
+        
+        # Grafiği PNG olarak kaydet
+        plt.savefig(f"{model_name.replace('/', '_')}_tsne_visualization.png")
+        plt.close()  # Grafiği kapat
+
+
