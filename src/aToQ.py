@@ -95,7 +95,7 @@ def train_model(model_data, model_name, train_questions, train_answers, val_ques
         # Validate on validation set
         val_question_reps = get_representation(model_data, val_questions)
         val_answer_reps = get_representation(model_data, val_answers)
-        val_similarities = cosine_similarity(val_question_reps, val_answer_reps)
+        val_similarities = cosine_similarity(val_answer_reps,val_question_reps)
         
         val_loss = 1 - torch.tensor(val_similarities, dtype=torch.float32, device=device).mean()
         print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(train_loader):.4f}, Validation Loss: {val_loss:.4f}")
@@ -164,39 +164,3 @@ if __name__ == '__main__':
         f.write("-----------------------------------------\n")
         for model_name, top1, top5 in results:
             f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
-
-    print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
-    with open("model_success_results.txt", "w") as f:
-        f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")
-        f.write("-----------------------------------------\n")
-        for model_name, top1, top5 in results:
-            f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
-
-    print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
-
-    # t-SNE uygulama ve görselleştirme
-    for model_name in model_names:
-        model_data = load_model(model_name)
-        all_representations = np.vstack([get_representation(model_data, answers)] + 
-                                        [get_representation(model_data, [question]) for question in questions])
-        
-        # t-SNE uygulama
-        tsne = TSNE(n_components=2, random_state=42)
-        tsne_results = tsne.fit_transform(all_representations)
-
-        plt.figure(figsize=(10, 6))
-        
-        plt.scatter(tsne_results[:len(answers), 0], tsne_results[:len(answers), 1], 
-                    label='Cevap', color='black', alpha=0.6)  # Cevap için siyah
-        plt.scatter(tsne_results[len(answers):, 0], tsne_results[len(answers):, 1], 
-                    label='Soru', color='red', alpha=0.6)  # Soru için kırmızı
-        
-        plt.title(f"{model_name} - t-SNE Görselleştirme")
-        plt.xlabel("t-SNE 1")
-        plt.ylabel("t-SNE 2")
-        plt.legend()
-        plt.grid()
-        
-        # Grafiği PNG olarak kaydet
-        plt.savefig(f"{model_name.replace('/', '_')}_tsne_visualization.png")
-        plt.close()  # Grafiği kapat

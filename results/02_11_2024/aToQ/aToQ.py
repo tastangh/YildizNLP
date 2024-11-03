@@ -164,14 +164,7 @@ if __name__ == '__main__':
         f.write("-----------------------------------------\n")
         for model_name, top1, top5 in results:
             f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
-
-    print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
-    with open("model_success_results.txt", "w") as f:
-        f.write("Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)\n")
-        f.write("-----------------------------------------\n")
-        for model_name, top1, top5 in results:
-            f.write(f"{model_name} | {top1:.2f} | {top5:.2f}\n")
-
+            
     print("Sonuçlar model_success_results.txt dosyasına yazıldı.")
 
     # t-SNE uygulama ve görselleştirme
