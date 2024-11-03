@@ -51,19 +51,17 @@ def get_representation(model_data, texts):
 
 # Başarıları değerlendirme
 def evaluate_model(model_name):
-    model_data = load_model(model_name)  # Model ve tokenizer birlikte yükleniyor
-
-    model = model_data[1]  # model_data içindeki model nesnesini alın
+    model_data = load_model(model_name)  
+    model = model_data[1]
     model.eval()
 
-    # Test setinin son değerlendirmesi
     question_reps = get_representation(model_data, questions)
     answer_reps = get_representation(model_data, answers)
+
     similarities = cosine_similarity(question_reps, answer_reps)
 
     top1_success = 0
     top5_success = 0
-
     for i in range(len(questions)):
         top_indices = np.argsort(similarities[i])[-5:]
         if top_indices[-1] == i:
@@ -72,7 +70,6 @@ def evaluate_model(model_name):
             top5_success += 1
 
     total_questions = len(questions)
-
     top1_percentage = (top1_success / total_questions) * 100
     top5_percentage = (top5_success / total_questions) * 100
 
