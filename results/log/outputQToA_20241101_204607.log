@@ -1,0 +1,9 @@
+2024-11-01 20:46:07,020 - INFO - Reading CSV file...
+2024-11-01 20:46:07,032 - INFO - CSV file successfully read.
+2024-11-01 20:46:07,511 - INFO - Using device: cuda
+2024-11-01 20:46:07,512 - INFO - Training model: dbmdz/bert-base-turkish-cased
+2024-11-01 20:46:12,352 - INFO - Epoch 1/5
+2024-11-01 20:46:13,758 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:46:14,256 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.
+2024-11-01 20:46:15,717 - INFO - Getting embeddings for dbmdz/bert-base-turkish-cased...
+2024-11-01 20:46:16,070 - INFO - Embeddings for dbmdz/bert-base-turkish-cased obtained.

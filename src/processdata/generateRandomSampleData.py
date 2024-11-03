@@ -18,22 +18,13 @@ os.makedirs(results_dir, exist_ok=True)
 # Rastgele 1000 soru ve cevap seçimi
 def process_data(data):
     # Rastgele 1000 soru seç
-    sampled_questions = data.sample(1000, random_state=30)
+    sampled_questions = data.sample(1000, random_state=32)
 
     # Soru ve cevapları içeren dosyayı kaydet
-    questions_output_file_path = os.path.join(results_dir, "sampled_question_answer_for_question.csv")
+    questions_output_file_path = os.path.join(results_dir, "sampled_question_answer.csv")
     sampled_questions.to_csv(questions_output_file_path, index=False, encoding='utf-8-sig', sep=';')
-
-    # Rastgele 1000 cevap seç
-    sampled_answers = data.sample(1000, random_state=40)
-
-    # Soru ve cevapları içeren dosyayı kaydet
-    answers_output_file_path = os.path.join(results_dir, "sampled_question_answer_for_answer.csv")
-    sampled_answers.to_csv(answers_output_file_path, index=False, encoding='utf-8-sig', sep=';')
-
     print("Rastgele 1000 soru ve cevap işlendi ve kaydedildi:")
     print("Soru dosyası:", questions_output_file_path)
-    print("Cevap dosyası:", answers_output_file_path)
 
 # Ana işlev
 def main():

@@ -1,0 +1,12 @@
+intfloat/multilingual-e5-large-instruct
+Validation Top 1: 81.00%
+Validation Top 5: 94.00%
+Test Top 1: 88.00%
+Test Top 5: 95.00%
+
+BAAI/bge-m3
+Validation Top 1: 81.00%
+Validation Top 5: 89.00%
+Test Top 1: 84.00%
+Test Top 5: 94.00%
+

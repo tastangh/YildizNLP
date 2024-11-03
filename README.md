@@ -32,4 +32,5 @@ To run this project, you will need to install the following Python packages. Mak
 ```bash
 pip install einops
 pip install pandas numpy scikit-learn transformers torch matplotlib tqdm
-pip install flash-attn
+pip install optuna
+pip install nltk

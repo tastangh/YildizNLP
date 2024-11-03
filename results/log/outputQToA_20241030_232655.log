@@ -1,5 +1,0 @@
-2024-10-30 23:26:55,955 - INFO - Reading CSV file...
-2024-10-30 23:26:55,965 - INFO - CSV file successfully read.
-2024-10-30 23:26:55,966 - INFO - Using device: cpu
-2024-10-30 23:26:55,967 - INFO - Processing model: dbmdz/bert-base-turkish-cased
-2024-10-30 23:27:09,137 - ERROR - Error processing model dbmdz/bert-base-turkish-cased: 'labels'

@@ -1,0 +1,8 @@
+Model Adı | Top 1 Başarı (%) | Top 5 Başarı (%)
+-----------------------------------------
+jinaai/jina-embeddings-v3 | 88.40 | 94.70
+sentence-transformers/all-MiniLM-L12-v2 | 30.80 | 43.30
+intfloat/multilingual-e5-large-instruct | 70.60 | 85.00
+BAAI/bge-m3 | 77.30 | 86.00
+nomic-ai/nomic-embed-text-v1 | 49.00 | 62.30
+dbmdz/bert-base-turkish-cased | 31.60 | 46.00

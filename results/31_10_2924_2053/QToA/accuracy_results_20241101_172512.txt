@@ -1,0 +1,6 @@
+dbmdz/bert-base-turkish-cased
+Validation Top 1: 47.00%
+Validation Top 5: 58.00%
+Test Top 1: 51.00%
+Test Top 5: 65.00%
+

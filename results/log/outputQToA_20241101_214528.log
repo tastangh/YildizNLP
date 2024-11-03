@@ -1,0 +1,3 @@
+2024-11-01 21:45:28,554 - INFO - Reading CSV file...
+2024-11-01 21:45:28,566 - INFO - CSV file successfully read.
+2024-11-01 21:45:28,968 - INFO - Using device: cuda

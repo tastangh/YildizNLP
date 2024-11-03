@@ -1,0 +1,8 @@
+2024-11-01 20:31:38,414 - INFO - Reading CSV file...
+2024-11-01 20:31:38,428 - INFO - CSV file successfully read.
+2024-11-01 20:31:38,507 - INFO - Using device: cuda
+2024-11-01 20:31:38,509 - INFO - Processing model: intfloat/multilingual-e5-large-instruct
+2024-11-01 20:31:38,741 - INFO - Reading CSV file...
+2024-11-01 20:31:38,753 - INFO - CSV file successfully read.
+2024-11-01 20:31:38,828 - INFO - Using device: cuda
+2024-11-01 20:31:38,832 - INFO - Processing model: BAAI/bge-m3

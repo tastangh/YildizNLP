@@ -1,5 +1,0 @@
-2024-10-30 23:28:53,538 - INFO - Reading CSV file...
-2024-10-30 23:28:53,550 - INFO - CSV file successfully read.
-2024-10-30 23:28:53,551 - INFO - Using device: cpu
-2024-10-30 23:28:53,553 - INFO - Processing model: dbmdz/bert-base-turkish-cased
-2024-10-30 23:28:56,966 - ERROR - Error processing model dbmdz/bert-base-turkish-cased: Expected input batch_size (8) to match target batch_size (1024).
